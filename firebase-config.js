@@ -1,11 +1,8 @@
-// Firebase setup file.
-// Replace these values with your Firebase web app config from Firebase Console.
-// This config is allowed to be public, but your Firestore rules must protect the data.
 window.firebaseConfig = {
-  apiKey: "PASTE_API_KEY_HERE",
-  authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
-  projectId: "PASTE_PROJECT_ID",
-  storageBucket: "PASTE_PROJECT_ID.firebasestorage.app",
-  messagingSenderId: "PASTE_SENDER_ID",
-  appId: "PASTE_APP_ID"
+  apiKey: "AIzaSyBsQ596hkHzoAB0qfuJksTSWT8z3C8m1ls",
+  authDomain: "york-route-app.firebaseapp.com",
+  projectId: "york-route-app",
+  storageBucket: "york-route-app.firebasestorage.app",
+  messagingSenderId: "215051477456",
+  appId: "1:215051477456:web:56219d014ef4ca6d4099d5"
 };
