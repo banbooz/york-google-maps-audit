@@ -27,11 +27,11 @@ function recommendedPrice(b){let base=b.score<=4?100:b.score<=5?85:b.score<=6?75
 function price(b){return Number(prices[b.id]||recommendedPrice(b));}
 function rebuildRoute(){let list=businesses.filter(b=>!removed.has(b.id));route=list.sort((a,b)=>routeMode==='walk'?(areaRank(a)-areaRank(b)||a.score-b.score):(a.score-b.score||areaRank(a)-areaRank(b)));if(currentIndex>=route.length)currentIndex=0;}
 function stop(){return route[currentIndex]||route[0];}
-function cleanQuery(b){return b.name+' '+b.area+' York';}
+function cleanQuery(b){return b.name+', York, UK';}
 function listing(b){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(cleanQuery(b));}
-function dir(b){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(b.name+' York');}
-function map(b){return 'https://www.google.com/maps?q='+encodeURIComponent(cleanQuery(b))+'&output=embed';}
-function recenterMap(){const b=stop();if(!b)return;const fresh=map(b)+'&t='+(Date.now());mapFrame.src=fresh;lastMapUrl=fresh;locateBtn.textContent='✓';setTimeout(()=>locateBtn.textContent='⌖',700);}
+function dir(b){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(cleanQuery(b));}
+function map(b){return 'https://maps.google.com/maps?f=q&source=s_q&hl=en&q='+encodeURIComponent(cleanQuery(b))+'&z=18&output=embed';}
+function recenterMap(){const b=stop();if(!b)return;const fresh=map(b)+'&reload='+(Date.now());mapFrame.src=fresh;lastMapUrl=fresh;locateBtn.textContent='✓';setTimeout(()=>locateBtn.textContent='⌖',700);}
 function scriptFor(b){return 'Hi, sorry to bother you. I am local in York and I help small businesses improve how they look on Google Maps. I was checking your listing and I think there may be a few quick improvements with photos, wording, review replies or a review QR code. I can do a one-off Google Maps upgrade for around £'+price(b)+'. No monthly contract. Would the owner or manager be the best person to speak to?';}
 function balance(){return Object.values(completed).reduce((sum,n)=>sum+Number(n||0),0);}
 
