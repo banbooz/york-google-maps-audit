@@ -17,7 +17,7 @@ const completed=JSON.parse(localStorage.getItem(completedKey)||'{}');
 const skipped=new Set(JSON.parse(localStorage.getItem(skippedKey)||'[]'));
 const removed=new Set(JSON.parse(localStorage.getItem(removedKey)||'[]'));
 let routeMode=localStorage.getItem(routeModeKey)||'best';
-let currentIndex=0,sx=0,sy=0,menuSx=0,menuSy=0,lastMapUrl='',activeMenu='route';
+let currentIndex=0,sx=0,sy=0,menuSx=0,menuSy=0,lastMapUrl='',activeMenu='route',swipeLocked=false;
 let route=[];
 const areaOrder=['Shambles','Shambles Market','Stonegate','Goodramgate','Fossgate','Coppergate','Castlegate','Piccadilly','Micklegate','Museum Street','Walmgate Bar'];
 
@@ -30,6 +30,7 @@ function cleanQuery(b){return b.name+' '+b.area+' York';}
 function listing(b){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(cleanQuery(b));}
 function dir(b){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(b.name+' York');}
 function map(b){return 'https://www.google.com/maps?q='+encodeURIComponent(cleanQuery(b))+'&output=embed';}
+function recenterMap(){const b=stop();if(!b)return;const fresh=map(b)+'&t='+(Date.now());mapFrame.src=fresh;lastMapUrl=fresh;locateBtn.textContent='✓';setTimeout(()=>locateBtn.textContent='⌖',700);}
 function scriptFor(b){return 'Hi, sorry to bother you. I am local in York and I help small businesses improve how they look on Google Maps. I was checking your listing and I think there may be a few quick improvements with photos, wording, review replies or a review QR code. I can do a one-off Google Maps upgrade for around £'+price(b)+'. No monthly contract. Would the owner or manager be the best person to speak to?';}
 function balance(){return Object.values(completed).reduce((sum,n)=>sum+Number(n||0),0);}
 
@@ -48,8 +49,9 @@ function render(updateMap=true){
  if(sideMenu.classList.contains('open'))renderMenu(activeMenu);
 }
 function flash(){nextStopCard.classList.add('skip-flash');setTimeout(()=>nextStopCard.classList.remove('skip-flash'),180);}
-function skip(){if(!stop())return;skipped.add(stop().id);localStorage.setItem(skippedKey,JSON.stringify([...skipped]));let next=route.findIndex((b,i)=>i>currentIndex&&!skipped.has(b.id));currentIndex=next>-1?next:0;bottomSheet.classList.remove('expanded');flash();render();}
-function previous(){if(!route.length)return;currentIndex=currentIndex>0?currentIndex-1:route.length-1;bottomSheet.classList.remove('expanded');flash();render();}
+function lockSwipe(){swipeLocked=true;setTimeout(()=>swipeLocked=false,450);}
+function skip(){if(!stop()||swipeLocked)return;lockSwipe();skipped.add(stop().id);localStorage.setItem(skippedKey,JSON.stringify([...skipped]));let next=route.findIndex((b,i)=>i>currentIndex&&!skipped.has(b.id));currentIndex=next>-1?next:0;bottomSheet.classList.remove('expanded');flash();render();}
+function previous(){if(!route.length||swipeLocked)return;lockSwipe();currentIndex=currentIndex>0?currentIndex-1:route.length-1;bottomSheet.classList.remove('expanded');flash();render();}
 function removeShop(){const b=stop();if(!b)return;removed.add(b.id);skipped.delete(b.id);localStorage.setItem(removedKey,JSON.stringify([...removed]));localStorage.setItem(skippedKey,JSON.stringify([...skipped]));rebuildRoute();bottomSheet.classList.remove('expanded');flash();render();}
 function saveNote(){if(!stop())return;notes[stop().id]=document.querySelector('#noteBox').value.trim();localStorage.setItem(notesKey,JSON.stringify(notes));document.querySelector('#saveNoteBtn').textContent='Saved';}
 function savePrice(){if(!stop())return;prices[stop().id]=Number(document.querySelector('#priceInput').value||0);localStorage.setItem(pricesKey,JSON.stringify(prices));render(false);}
@@ -70,12 +72,12 @@ function renderMenu(section){
  if(section==='money')menuContent.innerHTML='<h2>Money tracker</h2><div class="money-card"><strong>£'+balance()+'</strong><span>Total completed value</span></div>'+Object.entries(completed).map(([id,n])=>{let b=businesses.find(x=>x.id===id);return '<div class="note-row"><strong>'+((b&&b.name)||id)+'</strong><p>Completed for £'+n+'</p></div>';}).join('')||'<p class="empty-text">No completed jobs yet.</p>';
  if(section==='sync')menuContent.innerHTML='<h2>Partner sync</h2><div class="help-card"><p><strong>Not connected yet.</strong></p><p>Google login, friend codes and live shared routes need Firebase or another backend. This GitHub Pages version can store data on one phone only.</p><p>I can add this properly once a Firebase project is made and connected.</p></div>';
  if(section==='notes')menuContent.innerHTML='<h2>Saved notes</h2>'+Object.entries(notes).map(([id,n])=>{let b=businesses.find(x=>x.id===id);return '<div class="note-row"><strong>'+(b?b.name:id)+'</strong><p>'+n+'</p></div>';}).join('')||'<p class="empty-text">No notes yet.</p>';
- if(section==='help')menuContent.innerHTML='<h2>How to use</h2><div class="help-card"><p>Use Walking route to group shops by area so you do not walk back and forth.</p><p>Swipe up for script, pricing and completion tools.</p><p>Save a custom price, then tap Complete when the work is paid/done.</p><p>Google login/live partner sync needs Firebase.</p></div>';
+ if(section==='help')menuContent.innerHTML='<h2>How to use</h2><div class="help-card"><p>Use Walking route to group shops by area so you do not walk back and forth.</p><p>Swipe up for script, pricing and completion tools.</p><p>Save a custom price, then tap Complete when the work is paid/done.</p><p>Tap ⌖ to recentre the map on the current shop.</p><p>Google login/live partner sync needs Firebase.</p></div>';
 }
 
 rebuildRoute();
 bottomSheet.ontouchstart=e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;};
-bottomSheet.ontouchend=e=>{let dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(dx<-70&&Math.abs(dx)>Math.abs(dy))skip();if(dx>70&&Math.abs(dx)>Math.abs(dy))previous();if(dy<-55)bottomSheet.classList.add('expanded');if(dy>55)bottomSheet.classList.remove('expanded');};
+bottomSheet.ontouchend=e=>{if(swipeLocked)return;let dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(dx<-90&&Math.abs(dx)>Math.abs(dy)*1.4){skip();return;}if(dx>90&&Math.abs(dx)>Math.abs(dy)*1.4){previous();return;}if(dy<-55)bottomSheet.classList.add('expanded');if(dy>55)bottomSheet.classList.remove('expanded');};
 bottomSheet.onclick=e=>{if(e.target.className==='sheet-handle'||e.target.className==='swipe-hint')bottomSheet.classList.toggle('expanded');};
 sideMenu.ontouchstart=e=>{menuSx=e.touches[0].clientX;menuSy=e.touches[0].clientY;};sideMenu.ontouchend=e=>{let dx=e.changedTouches[0].clientX-menuSx,dy=e.changedTouches[0].clientY-menuSy;if(dx<-70&&Math.abs(dx)>Math.abs(dy))shutMenu();};
-menuBtn.onclick=openMenu;closeMenu.onclick=shutMenu;menuBackdrop.onclick=shutMenu;locateBtn.onclick=()=>render(true);document.querySelectorAll('.menu-item').forEach(b=>b.onclick=()=>renderMenu(b.dataset.section));render();
+menuBtn.onclick=openMenu;closeMenu.onclick=shutMenu;menuBackdrop.onclick=shutMenu;locateBtn.onclick=recenterMap;document.querySelectorAll('.menu-item').forEach(b=>b.onclick=()=>renderMenu(b.dataset.section));render();
