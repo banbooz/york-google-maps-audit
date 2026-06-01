@@ -44,6 +44,8 @@
       </div>
       <button data-section="route" class="menu-item active">Current route</button>
       <button data-section="shops" class="menu-item">All possible shops</button>
+      <button data-section="money" class="menu-item">Money tracker</button>
+      <button data-section="sync" class="menu-item">Partner sync</button>
       <button data-section="notes" class="menu-item">Saved notes</button>
       <button data-section="help" class="menu-item">How to use</button>
       <div id="menuContent" class="menu-content"></div>
@@ -51,11 +53,11 @@
     <div id="menuBackdrop" class="menu-backdrop"></div>
   </main>
 
-  <script src="businesses.js"></script>
-  <script src="app.js"></script>
+  <script src="businesses.js?v=6"></script>
+  <script src="app.js?v=6"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=6'));
     }
   </script>
 </body>
