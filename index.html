@@ -21,12 +21,12 @@
       </nav>
       <div class="hero-grid">
         <section>
-          <span class="eyebrow">Google Maps upgrade package</span>
-          <h1>Pick the local shops worth visiting first.</h1>
-          <p>Scroll through York businesses, check their current Google presence, save audit notes, and decide who you and your friend should approach.</p>
+          <span class="eyebrow">Google Maps upgrade route</span>
+          <h1>Choose your next shop.</h1>
+          <p>Simple route-style board for checking York businesses, opening their Google Maps photos, and deciding who to visit next.</p>
           <div class="stats">
             <div><strong id="totalCount">0</strong><span>Total leads</span></div>
-            <div><strong id="hotCount">0</strong><span>High priority</span></div>
+            <div><strong id="hotCount">0</strong><span>Best targets</span></div>
             <div><strong>£75</strong><span>Starter offer</span></div>
           </div>
         </section>
@@ -50,28 +50,11 @@
         <select id="priorityFilter"><option value="all">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
       </section>
 
-      <section class="main-grid">
-        <aside class="side-card">
-          <h2>Audit checklist</h2>
-          <p>Score a place low if their Google listing feels weak on mobile.</p>
-          <div class="checklist">
-            <label><input type="checkbox" checked> Blurry/dark photos</label>
-            <label><input type="checkbox" checked> No owner review replies</label>
-            <label><input type="checkbox" checked> Weak business description</label>
-            <label><input type="checkbox" checked> Products/services missing</label>
-            <label><input type="checkbox" checked> No review QR system</label>
-          </div>
-          <div class="offer">
-            <small>Your pitch</small>
-            <strong>Google Maps Upgrade Pack</strong>
-            <p>New photos, better wording, review QR code, reply templates and quick competitor check.</p>
-          </div>
-        </aside>
+      <section id="nextShop" class="next-shop"></section>
 
-        <section>
-          <div class="section-head"><div><h2>Lead board</h2><p>Click a card to open the full audit view.</p></div><span id="visibleCount">0 shown</span></div>
-          <div id="grid" class="grid"></div>
-        </section>
+      <section class="board-section">
+        <div class="section-head"><div><h2>All nearby shops</h2><p>Lowest scores show first so you know which place to check next.</p></div><span id="visibleCount">0 shown</span></div>
+        <div id="grid" class="grid"></div>
       </section>
     </main>
   </div>
