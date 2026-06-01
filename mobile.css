@@ -1,0 +1,73 @@
+@media (max-width: 700px){
+  .shell{width:min(100% - 18px, 430px);padding:9px 0 28px}
+  .hero{border-radius:22px;padding:12px;box-shadow:0 12px 30px rgba(56,42,25,.1)}
+  .nav{gap:10px}
+  .logo span{width:38px;height:38px;border-radius:12px;font-size:13px}
+  .logo strong{font-size:15px}
+  .logo small{font-size:11px}
+  .nav-actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .btn{padding:10px 11px;font-size:13px;text-align:center}
+  .hero-grid{display:block;padding:15px 4px 4px}
+  .eyebrow{font-size:11px;padding:6px 9px}
+  .hero h1{font-size:31px;line-height:.98;letter-spacing:-.045em;margin:10px 0 8px;max-width:360px}
+  .hero p{font-size:13px;line-height:1.4;margin:0;max-width:360px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}
+  .stats div{min-width:0;border-radius:14px;padding:9px 8px;text-align:center}
+  .stats strong{font-size:20px}
+  .stats span{font-size:10px;line-height:1.1}
+  .city-graphic{display:none}
+
+  .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+  .search{grid-column:1/-1;border-radius:15px;padding:0 11px}
+  input{padding:11px 0;font-size:14px}
+  select{border-radius:15px;padding:11px 9px;font-size:13px}
+
+  .main-grid{display:block}
+  .side-card{border-radius:18px;padding:12px;margin-bottom:10px;box-shadow:0 10px 24px rgba(55,42,25,.06)}
+  .side-card h2{font-size:18px}
+  .side-card p{font-size:12px;margin:5px 0 8px;line-height:1.35}
+  .checklist{grid-template-columns:1fr 1fr;gap:7px;margin:8px 0}
+  .checklist label{font-size:11px;gap:5px;line-height:1.25}
+  .offer{display:none}
+
+  .section-head{align-items:center;margin:8px 0 10px}
+  .section-head h2{font-size:20px}
+  .section-head p{display:none}
+  .section-head span{font-size:12px;padding:7px 10px}
+  .grid{gap:10px}
+  .card{border-radius:18px;box-shadow:0 10px 24px rgba(55,42,25,.07)}
+  .card:hover{transform:none}
+  .art{height:76px}
+  .art:before{inset:9px;border-radius:15px}
+  .art:after{width:100px;height:100px;right:-25px;bottom:-40px}
+  .art-icon{left:15px;bottom:12px;width:50px;height:50px;border-radius:15px;font-size:25px}
+  .card-body{padding:11px}
+  .tag{font-size:10px;padding:5px 7px}
+  .card h3{font-size:18px;margin:8px 0 3px;letter-spacing:-.025em}
+  .area{font-size:12px;margin-bottom:6px}
+  .insight{font-size:12px;line-height:1.35;min-height:0;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .score-row{margin:9px 0;gap:8px}
+  .meter{height:7px}
+  .score-row strong{font-size:12px}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .actions button,.actions a{padding:10px 8px;font-size:12px;text-align:center}
+
+  dialog{max-width:calc(100% - 14px)}
+  .modal-card{border-radius:22px;padding:12px;max-height:88vh;overflow:auto}
+  .close{width:48px;height:48px;font-size:30px;border-width:3px;top:6px}
+  .modal-hero{height:86px;border-radius:17px;margin-bottom:8px}
+  .modal h2{font-size:24px;line-height:1.05;margin-right:52px}
+  .modal-meta{gap:6px;margin:8px 0}
+  .modal-meta span{font-size:11px;padding:6px 8px}
+  .map-callout{padding:12px;border-radius:17px;margin:10px 0}
+  .map-callout strong{font-size:15px}
+  .map-callout p{font-size:12px;margin:5px 0 9px}
+  .map-callout a{padding:10px 12px;font-size:12px}
+  .weaknesses{gap:6px;margin:8px 0;padding-left:0;list-style:none}
+  .weaknesses li{font-size:12px;border-radius:12px;padding:9px}
+  .pitch{padding:12px;border-radius:16px;margin:10px 0}
+  .pitch p{font-size:12px;margin:5px 0 0}
+  .notes{min-height:90px;border-radius:14px;font-size:13px}
+  .modal-actions{display:grid;grid-template-columns:1fr;gap:7px;margin-top:10px}
+  .modal-actions a,.modal-actions button{text-align:center;padding:11px 12px;font-size:13px}
+}
