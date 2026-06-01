@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="uber.css" />
-  <link rel="stylesheet" href="features.css?v=6" />
+  <link rel="stylesheet" href="features.css?v=7" />
 </head>
 <body>
   <main class="app-shell">
@@ -28,7 +28,7 @@
         <strong>York audit route</strong>
         <span id="progressText">Stop 1 of 12</span>
       </div>
-      <button id="locateBtn" class="round-btn" aria-label="Reset to next stop">⌖</button>
+      <button id="locateBtn" class="round-btn" aria-label="Recentre map">⌖</button>
     </section>
 
     <section id="bottomSheet" class="bottom-sheet">
@@ -54,11 +54,11 @@
     <div id="menuBackdrop" class="menu-backdrop"></div>
   </main>
 
-  <script src="businesses.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="businesses.js?v=7"></script>
+  <script src="app.js?v=7"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=6'));
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=7'));
     }
   </script>
 </body>
