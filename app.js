@@ -49,7 +49,10 @@ function render(){
         <p class="area">${b.area}</p>
         <p class="insight">${b.insight}</p>
         <div class="score-row"><div class="meter"><span style="width:${b.score * 10}%"></span></div><strong>${b.score}/10</strong></div>
-        <div class="actions"><button data-id="${b.id}">Open audit</button><a href="${b.maps}" target="_blank" rel="noreferrer">Google Maps</a></div>
+        <div class="actions">
+          <button data-id="${b.id}">Open audit</button>
+          <a class="view-btn" href="${b.maps}" target="_blank" rel="noreferrer">View on Google Maps</a>
+        </div>
       </div>`;
     card.querySelector('button').addEventListener('click', () => openAudit(b.id));
     grid.append(card);
@@ -63,11 +66,20 @@ function openAudit(id){
     <h2>${b.name}</h2>
     <div class="modal-meta"><span>${b.category}</span><span>${b.area}</span><span>${b.priority} priority</span><span>${b.score}/10 current score</span></div>
     <p>${b.insight}</p>
+    <div class="map-callout">
+      <strong>Assess their current Google photos</strong>
+      <p>Open the listing, look at the first 5 photos, check if they are dark, blurry, outdated, badly cropped, or mostly uploaded by customers.</p>
+      <a href="${b.maps}" target="_blank" rel="noreferrer">View on Google Maps</a>
+    </div>
     <h3>What to check on Google Maps</h3>
     <ul class="weaknesses">${b.weaknesses.map(w => `<li>${w}</li>`).join('')}</ul>
     <div class="pitch"><strong>Possible pitch</strong><p>${b.pitch}</p></div>
     <label><strong>Your notes</strong><textarea class="notes" id="noteBox" placeholder="Example: main photo is dark, no reply to recent bad review, missing product photos...">${notes[b.id] || ''}</textarea></label>
-    <div class="modal-actions"><a href="${b.maps}" target="_blank" rel="noreferrer">Open Google Maps</a><button id="saveNote">Save note</button><a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(b.name + ' York') }" target="_blank" rel="noreferrer">Route</a></div>`;
+    <div class="modal-actions">
+      <a class="view-btn" href="${b.maps}" target="_blank" rel="noreferrer">View on Google Maps</a>
+      <button id="saveNote">Save note</button>
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(b.name + ' York') }" target="_blank" rel="noreferrer">Route</a>
+    </div>`;
   modal.showModal();
   document.querySelector('#saveNote').addEventListener('click', () => {
     notes[b.id] = document.querySelector('#noteBox').value.trim();
