@@ -1,4 +1,4 @@
-const CACHE_NAME = 'york-route-v12';
+const CACHE_NAME = 'york-route-v13';
 const APP_FILES = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const APP_FILES = [
   './features.css',
   './firebase-config.js',
   './sync-lite.js',
+  './voice-notes.js',
   './app.js',
   './businesses.js',
   './manifest.webmanifest',
