@@ -17,7 +17,7 @@ const skipped=new Set(JSON.parse(localStorage.getItem(skippedKey)||'[]'));
 let route=businesses.slice().sort((a,b)=>a.score-b.score);
 let currentIndex=route.findIndex(b=>!skipped.has(b.id));
 if(currentIndex<0)currentIndex=0;
-let sx=0,sy=0,menuSx=0,menuSy=0;
+let sx=0,sy=0,menuSx=0,menuSy=0,lastMapUrl='',activeMenu='route';
 
 function stop(){return route[currentIndex]||route[0];}
 function cleanQuery(b){return b.name+' '+b.area+' York';}
@@ -25,28 +25,32 @@ function listing(b){return 'https://www.google.com/maps/search/?api=1&query='+en
 function dir(b){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(b.name+' York');}
 function map(b){return 'https://www.google.com/maps?q='+encodeURIComponent(cleanQuery(b))+'&output=embed';}
 
-function render(){
+function render(updateMap=true){
  const b=stop();
  progressText.textContent='Stop '+(currentIndex+1)+' of '+route.length;
- mapFrame.src=map(b);
+ const newMap=map(b);
+ if(updateMap&&newMap!==lastMapUrl){mapFrame.src=newMap;lastMapUrl=newMap;}
  nextStopCard.innerHTML='<div class="stop-top"><div><span class="mini-label">Next stop</span><h1>'+b.name+'</h1><p>'+b.area+'</p></div><div class="score-badge">'+b.score+'/10</div></div><div class="stop-tags"><span>'+b.priority+' target</span><span>'+b.category+'</span></div><div class="primary-actions"><a class="start-route" href="'+dir(b)+'" target="_blank" rel="noreferrer">Start route</a><button id="skipBtn">Skip</button></div>';
  detailPanel.innerHTML='<div class="detail-row"><strong>Assess this shop</strong><p>Check the first photos, reviews, opening times, menu/products and whether the listing feels professional.</p></div><div class="detail-actions"><a href="'+listing(b)+'" target="_blank" rel="noreferrer">View Google listing</a><button id="saveNoteBtn">Save note</button></div><textarea id="noteBox" placeholder="Write notes here...">'+(notes[b.id]||'')+'</textarea>';
  document.querySelector('#skipBtn').onclick=skip;
  document.querySelector('#saveNoteBtn').onclick=saveNote;
- renderMenu(document.querySelector('.menu-item.active')?.dataset.section||'route');
+ if(sideMenu.classList.contains('open'))renderMenu(activeMenu);
 }
 
+function flash(){nextStopCard.classList.add('skip-flash');setTimeout(()=>nextStopCard.classList.remove('skip-flash'),180);}
 function skip(){
  skipped.add(stop().id);
  localStorage.setItem(skippedKey,JSON.stringify([...skipped]));
  let next=route.findIndex((b,i)=>i>currentIndex&&!skipped.has(b.id));
  currentIndex=next>-1?next:0;
  bottomSheet.classList.remove('expanded');
+ flash();
  render();
 }
 function previous(){
  currentIndex=currentIndex>0?currentIndex-1:route.length-1;
  bottomSheet.classList.remove('expanded');
+ flash();
  render();
 }
 function saveNote(){
@@ -54,9 +58,10 @@ function saveNote(){
  localStorage.setItem(notesKey,JSON.stringify(notes));
  document.querySelector('#saveNoteBtn').textContent='Saved';
 }
-function openMenu(){sideMenu.classList.add('open');menuBackdrop.classList.add('open');}
+function openMenu(){sideMenu.classList.add('open');menuBackdrop.classList.add('open');renderMenu(activeMenu);}
 function shutMenu(){sideMenu.classList.remove('open');menuBackdrop.classList.remove('open');}
 function renderMenu(section){
+ activeMenu=section;
  document.querySelectorAll('.menu-item').forEach(b=>b.classList.toggle('active',b.dataset.section===section));
  if(section==='route'){
   menuContent.innerHTML='<h2>Current route</h2>'+route.map((b,i)=>'<button class="shop-row '+(i===currentIndex?'selected':'')+'" data-i="'+i+'"><span>'+(i+1)+'</span><div><strong>'+b.name+'</strong><small>'+b.area+' · '+b.score+'/10</small></div></button>').join('');
@@ -72,6 +77,6 @@ bottomSheet.ontouchend=e=>{let dx=e.changedTouches[0].clientX-sx,dy=e.changedTou
 bottomSheet.onclick=e=>{if(e.target.className==='sheet-handle'||e.target.className==='swipe-hint')bottomSheet.classList.toggle('expanded');};
 sideMenu.ontouchstart=e=>{menuSx=e.touches[0].clientX;menuSy=e.touches[0].clientY;};
 sideMenu.ontouchend=e=>{let dx=e.changedTouches[0].clientX-menuSx,dy=e.changedTouches[0].clientY-menuSy;if(dx<-70&&Math.abs(dx)>Math.abs(dy))shutMenu();};
-menuBtn.onclick=openMenu;closeMenu.onclick=shutMenu;menuBackdrop.onclick=shutMenu;locateBtn.onclick=render;
+menuBtn.onclick=openMenu;closeMenu.onclick=shutMenu;menuBackdrop.onclick=shutMenu;locateBtn.onclick=()=>render(true);
 document.querySelectorAll('.menu-item').forEach(b=>b.onclick=()=>renderMenu(b.dataset.section));
 render();
