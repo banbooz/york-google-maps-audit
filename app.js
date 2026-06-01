@@ -21,6 +21,7 @@ let currentIndex=0,sx=0,sy=0,menuSx=0,menuSy=0,lastMapUrl='',activeMenu='route',
 let route=[];
 const areaOrder=['Shambles','Shambles Market','Stonegate','Goodramgate','Fossgate','Coppergate','Castlegate','Piccadilly','Micklegate','Museum Street','Walmgate Bar'];
 
+function cloudPush(){if(window.YorkSync&&YorkSync.push)YorkSync.push().catch(()=>{});}
 function areaRank(b){let a=areaOrder.findIndex(x=>b.area.includes(x));return a<0?99:a;}
 function recommendedPrice(b){let base=b.score<=4?100:b.score<=5?85:b.score<=6?75:50;if(['Jewellery','Retail','Tourist shop'].includes(b.category))base+=10;if(b.priority==='High')base+=15;if(b.priority==='Low')base-=15;return Math.max(40,base);}
 function price(b){return Number(prices[b.id]||recommendedPrice(b));}
@@ -50,15 +51,15 @@ function render(updateMap=true){
 }
 function flash(){nextStopCard.classList.add('skip-flash');setTimeout(()=>nextStopCard.classList.remove('skip-flash'),180);}
 function lockSwipe(){swipeLocked=true;setTimeout(()=>swipeLocked=false,450);}
-function skip(){if(!stop()||swipeLocked)return;lockSwipe();skipped.add(stop().id);localStorage.setItem(skippedKey,JSON.stringify([...skipped]));let next=route.findIndex((b,i)=>i>currentIndex&&!skipped.has(b.id));currentIndex=next>-1?next:0;bottomSheet.classList.remove('expanded');flash();render();}
+function skip(){if(!stop()||swipeLocked)return;lockSwipe();skipped.add(stop().id);localStorage.setItem(skippedKey,JSON.stringify([...skipped]));currentIndex=(currentIndex+1)%route.length;bottomSheet.classList.remove('expanded');flash();cloudPush();render();}
 function previous(){if(!route.length||swipeLocked)return;lockSwipe();currentIndex=currentIndex>0?currentIndex-1:route.length-1;bottomSheet.classList.remove('expanded');flash();render();}
-function removeShop(){const b=stop();if(!b)return;removed.add(b.id);skipped.delete(b.id);localStorage.setItem(removedKey,JSON.stringify([...removed]));localStorage.setItem(skippedKey,JSON.stringify([...skipped]));rebuildRoute();bottomSheet.classList.remove('expanded');flash();render();}
-function saveNote(){if(!stop())return;notes[stop().id]=document.querySelector('#noteBox').value.trim();localStorage.setItem(notesKey,JSON.stringify(notes));document.querySelector('#saveNoteBtn').textContent='Saved';}
-function savePrice(){if(!stop())return;prices[stop().id]=Number(document.querySelector('#priceInput').value||0);localStorage.setItem(pricesKey,JSON.stringify(prices));render(false);}
-function completeShop(){const b=stop();if(!b)return;completed[b.id]=price(b);localStorage.setItem(completedKey,JSON.stringify(completed));document.querySelector('#completeBtn').textContent='Completed';render(false);}
-function setRouteMode(mode){routeMode=mode;localStorage.setItem(routeModeKey,mode);rebuildRoute();currentIndex=0;render();renderMenu('route');}
+function removeShop(){const b=stop();if(!b)return;removed.add(b.id);skipped.delete(b.id);localStorage.setItem(removedKey,JSON.stringify([...removed]));localStorage.setItem(skippedKey,JSON.stringify([...skipped]));rebuildRoute();bottomSheet.classList.remove('expanded');flash();cloudPush();render();}
+function saveNote(){if(!stop())return;notes[stop().id]=document.querySelector('#noteBox').value.trim();localStorage.setItem(notesKey,JSON.stringify(notes));document.querySelector('#saveNoteBtn').textContent='Saved';cloudPush();}
+function savePrice(){if(!stop())return;prices[stop().id]=Number(document.querySelector('#priceInput').value||0);localStorage.setItem(pricesKey,JSON.stringify(prices));cloudPush();render(false);}
+function completeShop(){const b=stop();if(!b)return;completed[b.id]=price(b);localStorage.setItem(completedKey,JSON.stringify(completed));document.querySelector('#completeBtn').textContent='Completed';cloudPush();render(false);}
+function setRouteMode(mode){routeMode=mode;localStorage.setItem(routeModeKey,mode);rebuildRoute();currentIndex=0;cloudPush();render();renderMenu('route');}
 function openMenu(){sideMenu.classList.add('open');menuBackdrop.classList.add('open');renderMenu(activeMenu);}function shutMenu(){sideMenu.classList.remove('open');menuBackdrop.classList.remove('open');}
-function restoreShop(id){removed.delete(id);localStorage.setItem(removedKey,JSON.stringify([...removed]));rebuildRoute();renderMenu(activeMenu);render();}
+function restoreShop(id){removed.delete(id);localStorage.setItem(removedKey,JSON.stringify([...removed]));rebuildRoute();cloudPush();renderMenu(activeMenu);render();}
 function renderMenu(section){
  activeMenu=section;document.querySelectorAll('.menu-item').forEach(b=>b.classList.toggle('active',b.dataset.section===section));
  if(section==='route'){
@@ -70,9 +71,9 @@ function renderMenu(section){
   menuContent.querySelectorAll('.restore-row').forEach(r=>r.onclick=()=>restoreShop(r.dataset.id));
  }
  if(section==='money')menuContent.innerHTML='<h2>Money tracker</h2><div class="money-card"><strong>£'+balance()+'</strong><span>Total completed value</span></div>'+Object.entries(completed).map(([id,n])=>{let b=businesses.find(x=>x.id===id);return '<div class="note-row"><strong>'+((b&&b.name)||id)+'</strong><p>Completed for £'+n+'</p></div>';}).join('')||'<p class="empty-text">No completed jobs yet.</p>';
- if(section==='sync')menuContent.innerHTML='<h2>Partner sync</h2><div class="help-card"><p><strong>Not connected yet.</strong></p><p>Google login, friend codes and live shared routes need Firebase or another backend. This GitHub Pages version can store data on one phone only.</p><p>I can add this properly once a Firebase project is made and connected.</p></div>';
+ if(section==='sync'){menuContent.innerHTML='<h2>Partner sync</h2><div class="help-card"><p id="syncStatus">'+((window.YorkSync&&YorkSync.status())||'Loading sync...')+'</p></div><div class="detail-actions"><button id="signInBtn">Sign in with Google</button><button id="makeTeamBtn">Create team code</button></div><div class="detail-row"><strong>Join a friend</strong><p><input id="teamCodeInput" class="money-input" placeholder="CODE"><button id="joinTeamBtn">Join</button></p></div><div class="help-card"><p>Both phones need to sign in. One creates a team code, the other joins it. Removed shops, notes, prices and completed jobs then sync between devices.</p></div>';document.querySelector('#signInBtn').onclick=async()=>{try{await YorkSync.signIn();renderMenu('sync')}catch(e){alert(e.message)}};document.querySelector('#makeTeamBtn').onclick=async()=>{try{let c=await YorkSync.createTeam();alert('Team code: '+c);renderMenu('sync')}catch(e){alert(e.message)}};document.querySelector('#joinTeamBtn').onclick=async()=>{try{let c=await YorkSync.joinTeam(document.querySelector('#teamCodeInput').value);alert('Joined team: '+c);renderMenu('sync')}catch(e){alert(e.message)}};}
  if(section==='notes')menuContent.innerHTML='<h2>Saved notes</h2>'+Object.entries(notes).map(([id,n])=>{let b=businesses.find(x=>x.id===id);return '<div class="note-row"><strong>'+(b?b.name:id)+'</strong><p>'+n+'</p></div>';}).join('')||'<p class="empty-text">No notes yet.</p>';
- if(section==='help')menuContent.innerHTML='<h2>How to use</h2><div class="help-card"><p>Use Walking route to group shops by area so you do not walk back and forth.</p><p>Swipe up for script, pricing and completion tools.</p><p>Save a custom price, then tap Complete when the work is paid/done.</p><p>Tap ⌖ to recentre the map on the current shop.</p><p>Google login/live partner sync needs Firebase.</p></div>';
+ if(section==='help')menuContent.innerHTML='<h2>How to use</h2><div class="help-card"><p>Use Walking route to group shops by area so you do not walk back and forth.</p><p>Swipe up for script, pricing and completion tools.</p><p>Save a custom price, then tap Complete when the work is paid/done.</p><p>Tap ⌖ to recentre the map on the current shop.</p><p>Partner Sync lets two signed-in phones share route changes.</p></div>';
 }
 
 rebuildRoute();
