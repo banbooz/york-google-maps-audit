@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>York Maps Audit Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <nav class="nav">
+        <div class="logo"><span>YM</span><div><strong>York Maps Audit</strong><small>Shambles & city centre leads</small></div></div>
+        <div class="nav-actions">
+          <button id="exportBtn" class="btn btn-soft">Export notes</button>
+          <a class="btn btn-dark" href="https://www.google.com/maps/search/Shambles+York+shops" target="_blank" rel="noreferrer">Open York Maps</a>
+        </div>
+      </nav>
+      <div class="hero-grid">
+        <section>
+          <span class="eyebrow">Google Maps upgrade package</span>
+          <h1>Pick the local shops worth visiting first.</h1>
+          <p>Scroll through York businesses, check their current Google presence, save audit notes, and decide who you and your friend should approach.</p>
+          <div class="stats">
+            <div><strong id="totalCount">0</strong><span>Total leads</span></div>
+            <div><strong id="hotCount">0</strong><span>High priority</span></div>
+            <div><strong>£75</strong><span>Starter offer</span></div>
+          </div>
+        </section>
+        <section class="city-graphic" aria-label="York route graphic">
+          <div class="river"></div>
+          <div class="street street-a"></div>
+          <div class="street street-b"></div>
+          <div class="pin pin-a"><b>Shambles</b></div>
+          <div class="pin pin-b"><b>Market</b></div>
+          <div class="pin pin-c"><b>Fossgate</b></div>
+          <div class="pin pin-d"><b>Minster</b></div>
+          <div class="route-label">Walking audit route</div>
+        </section>
+      </div>
+    </header>
+
+    <main>
+      <section class="toolbar">
+        <label class="search"><span>⌕</span><input id="searchInput" placeholder="Search shop, café, barber, food..." /></label>
+        <select id="categoryFilter"><option value="all">All categories</option></select>
+        <select id="priorityFilter"><option value="all">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select>
+      </section>
+
+      <section class="main-grid">
+        <aside class="side-card">
+          <h2>Audit checklist</h2>
+          <p>Score a place low if their Google listing feels weak on mobile.</p>
+          <div class="checklist">
+            <label><input type="checkbox" checked> Blurry/dark photos</label>
+            <label><input type="checkbox" checked> No owner review replies</label>
+            <label><input type="checkbox" checked> Weak business description</label>
+            <label><input type="checkbox" checked> Products/services missing</label>
+            <label><input type="checkbox" checked> No review QR system</label>
+          </div>
+          <div class="offer">
+            <small>Your pitch</small>
+            <strong>Google Maps Upgrade Pack</strong>
+            <p>New photos, better wording, review QR code, reply templates and quick competitor check.</p>
+          </div>
+        </aside>
+
+        <section>
+          <div class="section-head"><div><h2>Lead board</h2><p>Click a card to open the full audit view.</p></div><span id="visibleCount">0 shown</span></div>
+          <div id="grid" class="grid"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="modal"><div class="modal-card"><button id="closeModal" class="close">×</button><div id="modalBody"></div></div></dialog>
+
+  <script src="businesses.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
