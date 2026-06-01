@@ -1,4 +1,5 @@
 const grid = document.querySelector('#grid');
+const nextShop = document.querySelector('#nextShop');
 const searchInput = document.querySelector('#searchInput');
 const categoryFilter = document.querySelector('#categoryFilter');
 const priorityFilter = document.querySelector('#priorityFilter');
@@ -34,24 +35,49 @@ function filteredBusinesses(){
   }).sort((a,b) => a.score - b.score);
 }
 
+function renderNextShop(items){
+  const b = items[0];
+  if(!b){
+    nextShop.innerHTML = `<div class="next-empty">No shops match your filters.</div>`;
+    return;
+  }
+  nextShop.innerHTML = `
+    <div class="next-label">Next best stop</div>
+    <div class="next-card">
+      <div class="next-icon art ${b.art}"><div class="art-icon">${b.icon}</div></div>
+      <div class="next-info">
+        <div class="next-meta"><span>${b.priority} target</span><span>${b.category}</span><span>${b.score}/10</span></div>
+        <h2>${b.name}</h2>
+        <p>${b.area}</p>
+      </div>
+      <div class="next-actions">
+        <button data-id="${b.id}">Open</button>
+        <a class="view-btn" href="${b.maps}" target="_blank" rel="noreferrer">View Maps</a>
+        <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(b.name + ' York') }" target="_blank" rel="noreferrer">Route</a>
+      </div>
+    </div>`;
+  nextShop.querySelector('button').addEventListener('click', () => openAudit(b.id));
+}
+
 function render(){
   const items = filteredBusinesses();
   grid.innerHTML = '';
   visibleCount.textContent = `${items.length} shown`;
-  items.forEach(b => {
+  renderNextShop(items);
+  items.forEach((b, index) => {
     const card = document.createElement('article');
-    card.className = 'card';
+    card.className = 'card route-card';
     card.innerHTML = `
-      <div class="art ${b.art}"><div class="art-icon">${b.icon}</div></div>
-      <div class="card-body">
+      <div class="route-number">${index + 1}</div>
+      <div class="route-main">
         <div class="topline"><span class="tag">${b.category}</span><span class="tag priority ${b.priority}">${b.priority}</span></div>
         <h3>${b.name}</h3>
         <p class="area">${b.area}</p>
         <p class="insight">${b.insight}</p>
         <div class="score-row"><div class="meter"><span style="width:${b.score * 10}%"></span></div><strong>${b.score}/10</strong></div>
         <div class="actions">
-          <button data-id="${b.id}">Open audit</button>
-          <a class="view-btn" href="${b.maps}" target="_blank" rel="noreferrer">View on Google Maps</a>
+          <button data-id="${b.id}">Open</button>
+          <a class="view-btn" href="${b.maps}" target="_blank" rel="noreferrer">View Maps</a>
         </div>
       </div>`;
     card.querySelector('button').addEventListener('click', () => openAudit(b.id));
