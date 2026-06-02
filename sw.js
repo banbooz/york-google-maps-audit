@@ -1,4 +1,4 @@
-const CACHE_NAME = 'york-route-v34';
+const CACHE_NAME = 'york-route-v35';
 const APP_FILES = [
   './','./index.html','./uber.css','./features.css','./project-hub.css','./shop-page.css','./firebase-config.js','./sync-lite.js','./voice-notes.js','./project-hub.js','./shop-page.js','./menu-pages.js','./ios-scroll-fix.js','./app.js','./businesses.js','./manifest.webmanifest','./icon.svg'
 ];
