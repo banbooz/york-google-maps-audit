@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="uber.css" />
-  <link rel="stylesheet" href="features.css?v=19" />
+  <link rel="stylesheet" href="features.css?v=21" />
 </head>
 <body>
   <main class="app-shell">
@@ -31,7 +31,7 @@
     </section>
     <aside id="sideMenu" class="side-menu" aria-hidden="true">
       <div class="menu-head"><div><strong>Menu</strong><span>York shop route</span></div><button id="closeMenu">×</button></div>
-      <button data-section="route" class="menu-item active">Current route</button><button data-section="shops" class="menu-item">All possible shops</button><button data-section="money" class="menu-item">Money tracker</button><button data-section="sync" class="menu-item">Partner sync</button><button data-section="notes" class="menu-item">Saved notes</button><button data-section="help" class="menu-item">How to use</button>
+      <button data-section="route" class="menu-item active">Current route</button><button data-section="shops" class="menu-item">All possible shops</button><button data-section="money" class="menu-item">Money tracker</button><button data-section="sync" class="menu-item">Partner sync</button><button data-section="notes" class="menu-item">Saved notes</button>
       <div id="menuContent" class="menu-content"></div>
     </aside>
     <div id="menuBackdrop" class="menu-backdrop"></div>
@@ -39,13 +39,15 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js?v=19"></script>
-  <script src="sync-lite.js?v=19"></script>
-  <script src="businesses.js?v=19"></script>
-  <script src="app.js?v=19"></script>
-  <script src="voice-notes.js?v=19"></script>
-  <script src="project-hub.js?v=19"></script>
-  <script src="ios-scroll-fix.js?v=19"></script>
-  <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=19')); }</script>
+  <script src="firebase-config.js?v=21"></script>
+  <script src="sync-lite.js?v=21"></script>
+  <script src="businesses.js?v=21"></script>
+  <script src="app.js?v=21"></script>
+  <script src="voice-notes.js?v=21"></script>
+  <script src="project-hub.js?v=21"></script>
+  <script src="menu-pages.js?v=21"></script>
+  <script src="friends.js?v=21"></script>
+  <script src="ios-scroll-fix.js?v=21"></script>
+  <script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=21')); }</script>
 </body>
 </html>
