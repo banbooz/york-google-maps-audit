@@ -70,8 +70,6 @@
   }
 
   function projectCard(p) {
-    const n = notes()[p.id] || '';
-    const c = contacts()[p.id] || {};
     const done = completed()[p.id];
     return `
       <div class="project-card" data-id="${p.id}">
@@ -115,28 +113,52 @@
       </div>`;
   }
 
-  function renderHub() {
-    autoCreateExistingProjects();
-    const menuContent = document.querySelector('#menuContent');
-    if (!menuContent) return;
-    document.querySelectorAll('.menu-item').forEach(btn => btn.classList.remove('active'));
-    document.querySelector('#projectHubBtn')?.classList.add('active');
-    const list = Object.values(projects()).sort((a, b) => (b.updated || 0) - (a.updated || 0));
-    menuContent.innerHTML = `
-      <h2>Project Hub</h2>
-      <div class="help-card"><p>Projects are created when you save notes, contact details, or complete a shop. Use this to track real jobs after speaking to a business.</p></div>
-      ${list.length ? list.map(projectCard).join('') : '<p class="empty-text">No projects yet. Save contact details or notes on a shop first.</p>'}`;
+  function ensurePage() {
+    let page = document.querySelector('#projectHubPage');
+    if (page) return page;
+    page = document.createElement('section');
+    page.id = 'projectHubPage';
+    page.className = 'project-page';
+    page.innerHTML = '<div class="project-page-head"><button id="projectBackBtn">‹</button><div><strong>Project Hub</strong><span>Saved jobs and client work</span></div></div><div id="projectPageContent" class="project-page-content"></div>';
+    document.body.appendChild(page);
+    document.querySelector('#projectBackBtn').onclick = closeHub;
+    return page;
+  }
 
-    menuContent.querySelectorAll('.project-open').forEach(btn => {
+  function openHub() {
+    autoCreateExistingProjects();
+    const page = ensurePage();
+    const content = page.querySelector('#projectPageContent');
+    const list = Object.values(projects()).sort((a, b) => (b.updated || 0) - (a.updated || 0));
+    content.innerHTML = `
+      <div class="project-summary-card">
+        <strong>${list.length}</strong>
+        <span>active saved projects</span>
+        <p>Projects are created when you save notes, contact details, or complete a shop.</p>
+      </div>
+      ${list.length ? list.map(projectCard).join('') : '<p class="empty-text">No projects yet. Save contact details or notes on a shop first.</p>'}`;
+    page.classList.add('open');
+    document.querySelector('#sideMenu')?.classList.remove('open');
+    document.querySelector('#menuBackdrop')?.classList.remove('open');
+    wireProjectButtons(content);
+  }
+
+  function closeHub() {
+    document.querySelector('#projectHubPage')?.classList.remove('open');
+  }
+
+  function wireProjectButtons(root) {
+    root.querySelectorAll('.project-open').forEach(btn => {
       btn.onclick = () => {
         const p = projects()[btn.dataset.id];
         const box = document.querySelector('#project-detail-' + btn.dataset.id);
         if (!p || !box) return;
         box.innerHTML = box.innerHTML ? '' : detailHtml(p);
+        wireProjectButtons(box);
       };
     });
 
-    menuContent.querySelectorAll('.project-website').forEach(btn => {
+    root.querySelectorAll('.project-website').forEach(btn => {
       btn.onclick = () => {
         const all = projects();
         const p = all[btn.dataset.id];
@@ -147,7 +169,7 @@
         p.updated = Date.now();
         all[p.id] = p;
         writeProjects(all);
-        renderHub();
+        openHub();
       };
     });
   }
@@ -160,7 +182,7 @@
     btn.id = 'projectHubBtn';
     btn.className = 'menu-item';
     btn.textContent = 'Project hub';
-    btn.onclick = renderHub;
+    btn.onclick = openHub;
     menu.insertBefore(btn, notesBtn);
   }
 
@@ -170,7 +192,7 @@
     }
   }, true);
 
-  window.ProjectHub = { render: renderHub, create: createProjectFromShop };
+  window.ProjectHub = { render: openHub, open: openHub, close: closeHub, create: createProjectFromShop };
   window.addEventListener('load', () => setTimeout(addMenuButton, 400));
   const obs = new MutationObserver(addMenuButton);
   obs.observe(document.body, { childList: true, subtree: true });
