@@ -1,4 +1,4 @@
-const CACHE_NAME = 'york-route-v22';
+const CACHE_NAME = 'york-route-v23';
 const APP_FILES = [
   './',
   './index.html',
