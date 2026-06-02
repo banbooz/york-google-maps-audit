@@ -9,7 +9,7 @@ const sideMenu=document.querySelector('#sideMenu');
 const menuBackdrop=document.querySelector('#menuBackdrop');
 const menuContent=document.querySelector('#menuContent');
 const locateBtn=document.querySelector('#locateBtn');
-const APP_VERSION='29';
+const APP_VERSION='30';
 
 const notesKey='york-notes-v4',skippedKey='york-skipped-v2',removedKey='york-removed-v1',pricesKey='york-prices-v1',completedKey='york-completed-v1',routeModeKey='york-route-mode-v1',contactsKey='york-contacts-v1',projectsKey='york-projects-v1';
 let notes={},prices={},completed={},contacts={},skipped=new Set(),removed=new Set();
@@ -68,7 +68,7 @@ function saveContact(){if(!stop())return;contacts[stop().id]={owner:document.que
 function showConfirm(text,yes){document.querySelector('#confirmPop')?.remove();let pop=document.createElement('div');pop.id='confirmPop';pop.className='confirm-pop';pop.innerHTML='<div><strong>'+text+'</strong><div><button id="noBtn">No</button><button id="yesBtn">Yes</button></div></div>';document.body.appendChild(pop);pop.querySelector('#noBtn').onclick=()=>pop.remove();pop.querySelector('#yesBtn').onclick=()=>{pop.remove();yes();};}
 function showUndo(text,undo){document.querySelector('#undoToast')?.remove();let toast=document.createElement('div');toast.id='undoToast';toast.className='undo-toast';toast.innerHTML='<span>'+text+'</span><button>Undo</button>';document.body.appendChild(toast);toast.querySelector('button').onclick=()=>{toast.remove();undo();};setTimeout(()=>toast.remove(),5000);}
 function setRouteMode(){localStorage.setItem(routeModeKey,'best');rebuildRoute();currentIndex=0;cloudPush();render();renderMenu('route');}
-function openMenu(){sideMenu.classList.add('open');menuBackdrop.classList.add('open');renderMenu(activeMenu);setMenuVersion();}
+function openMenu(){sideMenu.classList.add('open');menuBackdrop.classList.add('open');renderMenu(activeMenu==='projects'?'route':activeMenu);setMenuVersion();}
 function shutMenu(){sideMenu.classList.remove('open');menuBackdrop.classList.remove('open');}
 function restoreShop(id){removed.delete(id);localStorage.setItem(removedKey,JSON.stringify([...removed]));readLocal();rebuildRoute();cloudPush();renderMenu(activeMenu);render();}
 function teamListHtml(){let list=(window.YorkSync&&YorkSync.members?YorkSync.members():teamMembers)||[];if(!list.length)return '<p class="empty-text">No team members loaded yet.</p>';return list.map(m=>'<div class="note-row"><strong>'+(m.name||'Team member')+'</strong><p>'+(m.email||'')+' · '+(m.code||'')+'</p></div>').join('');}
