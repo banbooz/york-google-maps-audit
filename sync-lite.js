@@ -1,6 +1,6 @@
 window.YorkSync=function(){
 var db=null,auth=null,user=null,team=null,watcher=null,busy=false,members=[];
-var keys=['york-notes-v4','york-skipped-v2','york-removed-v1','york-prices-v1','york-completed-v1','york-route-mode-v1','york-contacts-v1'];
+var keys=['york-notes-v4','york-skipped-v2','york-removed-v1','york-prices-v1','york-completed-v1','york-route-mode-v1','york-contacts-v1','york-projects-v1'];
 function init(){try{if(!window.firebase||!window.firebaseConfig)return false;if(!firebase.apps.length)firebase.initializeApp(window.firebaseConfig);auth=firebase.auth();db=firebase.firestore();auth.onAuthStateChanged(function(u){user=u;if(u){team=localStorage.getItem('york-team-code-v1');if(team)watch(team);}});return true;}catch(e){console.log(e);return false;}}
 function profile(){return user?{uid:user.uid,name:user.displayName||user.email||'Team member',email:user.email||'',code:code()}:null;}
 function state(){var s={};keys.forEach(function(k){s[k]=localStorage.getItem(k)||''});return s;}
