@@ -1,4 +1,4 @@
-const CACHE_NAME = 'york-route-v21';
+const CACHE_NAME = 'york-route-v22';
 const APP_FILES = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const APP_FILES = [
   './project-hub.js',
   './menu-pages.js',
   './friends.js',
+  './start-project.js',
   './ios-scroll-fix.js',
   './app.js',
   './businesses.js',
