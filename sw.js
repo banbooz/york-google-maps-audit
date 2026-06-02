@@ -1,6 +1,6 @@
-const CACHE_NAME = 'york-route-v35';
+const CACHE_NAME = 'york-route-v36';
 const APP_FILES = [
-  './','./index.html','./uber.css','./features.css','./project-hub.css','./shop-page.css','./firebase-config.js','./sync-lite.js','./voice-notes.js','./project-hub.js','./shop-page.js','./menu-pages.js','./ios-scroll-fix.js','./app.js','./businesses.js','./manifest.webmanifest','./icon.svg'
+  './','./index.html','./uber.css','./features.css','./project-hub.css','./shop-page.css','./money-tracker.css','./firebase-config.js','./sync-lite.js','./voice-notes.js','./project-hub.js','./shop-page.js','./menu-pages.js','./ios-scroll-fix.js','./app.js','./businesses.js','./manifest.webmanifest','./icon.svg'
 ];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_FILES)));self.skipWaiting();});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))));self.clients.claim();});
