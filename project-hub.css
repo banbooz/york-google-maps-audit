@@ -6,3 +6,4 @@
 .project-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .project-meta b{background:#f1f1f1;border-radius:999px;padding:7px 9px;font-size:11px}
 .project-card.is-complete .project-meta b{background:#e9fbb4}
+.project-page.exit-left,.clean-page.exit-left{transform:translateX(-100%)}
