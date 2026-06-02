@@ -1,0 +1,98 @@
+.shop-status-tag {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 9px;
+  margin: 6px 0 4px;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: .01em;
+}
+
+.shop-status-visited.shop-status-tag {
+  background: #d9ffd6;
+  color: #0b7a20;
+}
+
+.shop-status-not-visited.shop-status-tag {
+  background: #ffe2df;
+  color: #b00000;
+}
+
+.shop-status-comeback.shop-status-tag {
+  background: #fff1a8;
+  color: #7a5700;
+}
+
+.shop-status-comeback.shop-row,
+.shop-status-comeback.clean-row,
+.shop-status-comeback.project-card,
+.shop-comeback-card {
+  background: #fff6bd !important;
+}
+
+.shop-status-comeback.shop-row span {
+  background: #ffe36e;
+}
+
+.shop-visited-card {
+  border-radius: 22px;
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #666;
+  font-weight: 850;
+}
+
+.row-status {
+  line-height: 1;
+}
+
+.collapsible-row {
+  cursor: pointer;
+}
+
+.collapsible-row summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.collapsible-row summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible-row summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.collapsible-row summary span {
+  color: #777;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.collapsible-row[open] summary {
+  margin-bottom: 10px;
+}
+
+.collapsible-row[open] summary span {
+  color: inherit;
+}
+
+#comebackBtn {
+  background: #fff1a8;
+  color: #7a5700;
+}
+
+.team-actions {
+  grid-template-columns: 1fr !important;
+}
