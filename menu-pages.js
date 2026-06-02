@@ -4,6 +4,7 @@
   const completedKey = 'york-completed-v1';
   const moneyHistoryKey = 'york-money-history-v1';
   const contactsKey = 'york-contacts-v1';
+  const statusKey = 'york-shop-status-v1';
 
   function read(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
@@ -11,7 +12,24 @@
   }
 
   function mapsLink(b) {
-    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(b.name + ', York, UK');
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(b.name);
+  }
+
+  function statusFor(b) {
+    const statuses = read(statusKey, {});
+    const skipped = new Set(read('york-skipped-v2', []));
+    return statuses[b.id] || (skipped.has(b.id) ? 'visited' : 'not-visited');
+  }
+
+  function statusLabel(status) {
+    if (status === 'visited') return 'Visited';
+    if (status === 'comeback') return 'Come back later';
+    return 'Not visited';
+  }
+
+  function statusTag(b) {
+    const status = statusFor(b);
+    return `<span class="shop-status-tag shop-status-${status}">${statusLabel(status)}</span>`;
   }
 
   function page() {
@@ -55,18 +73,18 @@
   function renderRoute() {
     const list = activeBusinesses().sort((a, b) => a.score - b.score);
     open('Current route', list.length + ' possible shops', list.map((b, i) => `
-      <a class="clean-row" href="${mapsLink(b)}" target="_blank" rel="noreferrer">
+      <a class="clean-row shop-status-${statusFor(b)}" href="${mapsLink(b)}" target="_blank" rel="noreferrer">
         <span>${i + 1}</span>
-        <div><strong>${b.name}</strong><small>${b.area} &middot; ${b.priority}</small></div>
+        <div><strong>${b.name}</strong>${statusTag(b)}<small>${b.area} &middot; ${b.priority}</small></div>
       </a>`).join(''));
   }
 
   function renderShops() {
     const list = activeBusinesses().sort((a, b) => a.name.localeCompare(b.name));
     open('All shops', list.length + ' shops saved', list.map(b => `
-      <a class="clean-row" href="${mapsLink(b)}" target="_blank" rel="noreferrer">
+      <a class="clean-row shop-status-${statusFor(b)}" href="${mapsLink(b)}" target="_blank" rel="noreferrer">
         <span>&nearr;</span>
-        <div><strong>${b.name}</strong><small>${b.category} &middot; ${b.area}</small></div>
+        <div><strong>${b.name}</strong>${statusTag(b)}<small>${b.category} &middot; ${b.area}</small></div>
       </a>`).join(''));
   }
 
@@ -76,7 +94,7 @@
     const total = Object.values(completed).reduce((s, n) => s + Number(n || 0), 0);
     const rows = Object.entries(completed).map(([id, amount]) => {
       const b = (window.businesses || []).find(x => x.id === id);
-      return `<div class="clean-card"><strong>${b?.name || id}</strong><p>Completed for &pound;${amount}</p></div>`;
+      return `<div class="clean-card"><strong>${b?.name || id}</strong>${b ? statusTag(b) : ''}<p>Completed for &pound;${amount}</p></div>`;
     }).join('');
     const savedRows = saved.map(item => `<div class="clean-card saved-money-row"><strong>&pound;${item.total || 0}</strong><p>${item.date || 'Saved total'} &middot; ${item.count || 0} completed job${item.count === 1 ? '' : 's'}</p></div>`).join('');
     open('Money tracker', '&pound;' + total + ' total completed value', `<div class="mini-stat"><strong>&pound;${total}</strong><span>Total made</span></div><div class="money-actions"><button id="saveMoneyBtn">Save current total</button><button id="resetMoneyBtn" class="danger-money-btn">Reset to &pound;0</button></div><h2>Current history</h2>${rows || '<p class="empty-text">No completed jobs yet.</p>'}<h2>Saved history</h2>${savedRows || '<p class="empty-text">No saved money history yet.</p>'}`);
@@ -103,7 +121,7 @@
     const rows = [...ids].map(id => {
       const b = (window.businesses || []).find(x => x.id === id);
       const c = contacts[id] || {};
-      return `<div class="clean-card"><strong>${b?.name || id}</strong><p>${c.owner || ''} ${c.phone ? '&middot; ' + c.phone : ''}</p><p>${String(notes[id] || 'No note saved.').replace(/\n/g, '<br>')}</p></div>`;
+      return `<div class="clean-card"><strong>${b?.name || id}</strong>${b ? statusTag(b) : ''}<p>${c.owner || ''} ${c.phone ? '&middot; ' + c.phone : ''}</p><p>${String(notes[id] || 'No note saved.').replace(/\n/g, '<br>')}</p></div>`;
     }).join('');
     open('Saved notes', ids.size + ' shops with saved info', rows || '<p class="empty-text">No notes saved yet.</p>');
   }
@@ -116,10 +134,9 @@
     const btn = e.target.closest?.('.menu-item[data-section]');
     if (!btn) return;
     const section = btn.dataset.section;
-    if (section === 'sync' || section === 'projects' || section === 'shop') return;
+    if (section === 'sync' || section === 'projects' || section === 'shop' || section === 'route') return;
     e.preventDefault();
     e.stopImmediatePropagation();
-    if (section === 'route') renderRoute();
     if (section === 'shops') renderShops();
     if (section === 'money') renderMoney();
     if (section === 'notes') renderNotes();
