@@ -10,16 +10,6 @@
     catch { return fallback; }
   }
 
-  function price(b) {
-    const prices = read('york-prices-v1', {});
-    if (prices[b.id]) return Number(prices[b.id]);
-    let base = b.score <= 4 ? 100 : b.score <= 5 ? 85 : b.score <= 6 ? 75 : 50;
-    if (['Jewellery', 'Retail', 'Tourist shop'].includes(b.category)) base += 10;
-    if (b.priority === 'High') base += 15;
-    if (b.priority === 'Low') base -= 15;
-    return Math.max(40, base);
-  }
-
   function mapsLink(b) {
     return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(b.name + ', York, UK');
   }
@@ -60,7 +50,7 @@
     open('Current route', list.length + ' possible shops', list.map((b, i) => `
       <a class="clean-row" href="${mapsLink(b)}" target="_blank" rel="noreferrer">
         <span>${i + 1}</span>
-        <div><strong>${b.name}</strong><small>${b.area} · £${price(b)} · ${b.priority}</small></div>
+        <div><strong>${b.name}</strong><small>${b.area} · ${b.priority}</small></div>
       </a>`).join(''));
   }
 
@@ -103,7 +93,7 @@
     const btn = e.target.closest?.('.menu-item[data-section]');
     if (!btn) return;
     const section = btn.dataset.section;
-    if (section === 'sync') return;
+    if (section === 'sync' || section === 'projects') return;
     e.preventDefault();
     e.stopImmediatePropagation();
     if (section === 'route') renderRoute();
