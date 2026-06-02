@@ -9,7 +9,7 @@ const sideMenu=document.querySelector('#sideMenu');
 const menuBackdrop=document.querySelector('#menuBackdrop');
 const menuContent=document.querySelector('#menuContent');
 const locateBtn=document.querySelector('#locateBtn');
-const APP_VERSION='28';
+const APP_VERSION='29';
 
 const notesKey='york-notes-v4',skippedKey='york-skipped-v2',removedKey='york-removed-v1',pricesKey='york-prices-v1',completedKey='york-completed-v1',routeModeKey='york-route-mode-v1',contactsKey='york-contacts-v1',projectsKey='york-projects-v1';
 let notes={},prices={},completed={},contacts={},skipped=new Set(),removed=new Set();
@@ -48,7 +48,7 @@ function render(updateMap=true){
  document.querySelector('#skipBtn').onclick=skip;
  document.querySelector('#setPriceBtn').onclick=()=>setPrice(b);
  document.querySelector('#priceInput').oninput=e=>savePriceValue(b,e.target.value,false);
- document.querySelector('#startProjectBtn').onclick=()=>startProject(b);
+ document.querySelector('#startProjectBtn').onclick=()=>startProject(b,true);
  document.querySelector('#saveNoteBtn').onclick=saveNote;
  document.querySelector('#saveContactBtn').onclick=saveContact;
  document.querySelector('#removeBtn').onclick=()=>confirmRemove(b);
@@ -56,7 +56,7 @@ function render(updateMap=true){
 
 function setPrice(b){let val=prompt('Enter price for '+b.name,price(b)||'');if(val===null)return;savePriceValue(b,val,true);}
 function savePriceValue(b,val,rerender){if(val)prices[b.id]=Number(val);else delete prices[b.id];localStorage.setItem(pricesKey,JSON.stringify(prices));cloudPush();if(rerender)render(false);else{let badge=document.querySelector('#setPriceBtn');if(badge)badge.textContent=priceLabel(b);}}
-function startProject(b){let projects=safeParse(projectsKey,{});let old=projects[b.id]||{};projects[b.id]={id:b.id,name:b.name,area:b.area,category:b.category,website:old.website||'',status:old.status||'Started',progress:old.progress||{},completed:old.completed||false,created:old.created||Date.now(),updated:Date.now()};localStorage.setItem(projectsKey,JSON.stringify(projects));cloudPush();let btn=document.querySelector('#startProjectBtn');if(btn){btn.textContent='Project started';setTimeout(()=>btn.textContent='Start project',900);}}
+function startProject(b,openHub=false){let projects=safeParse(projectsKey,{});let old=projects[b.id]||{};projects[b.id]={id:b.id,name:b.name,area:b.area,category:b.category,website:old.website||'',status:old.status||'Started',progress:old.progress||{},completed:old.completed||false,created:old.created||Date.now(),updated:Date.now()};localStorage.setItem(projectsKey,JSON.stringify(projects));cloudPush();if(openHub&&window.ProjectHub)ProjectHub.open(b.id);}
 function flash(){nextStopCard.classList.add('skip-flash');setTimeout(()=>nextStopCard.classList.remove('skip-flash'),180);}
 function lockSwipe(){swipeLocked=true;setTimeout(()=>swipeLocked=false,450);}
 function skip(){if(!stop()||swipeLocked)return;lockSwipe();skipped.add(stop().id);localStorage.setItem(skippedKey,JSON.stringify([...skipped]));currentIndex=(currentIndex+1)%route.length;bottomSheet.classList.remove('expanded');flash();cloudPush();render();}
@@ -74,6 +74,7 @@ function restoreShop(id){removed.delete(id);localStorage.setItem(removedKey,JSON
 function teamListHtml(){let list=(window.YorkSync&&YorkSync.members?YorkSync.members():teamMembers)||[];if(!list.length)return '<p class="empty-text">No team members loaded yet.</p>';return list.map(m=>'<div class="note-row"><strong>'+(m.name||'Team member')+'</strong><p>'+(m.email||'')+' · '+(m.code||'')+'</p></div>').join('');}
 function renderMenu(section){
  activeMenu=section;setMenuVersion();document.querySelectorAll('.menu-item').forEach(b=>b.classList.toggle('active',b.dataset.section===section));
+ if(section==='projects'){if(window.ProjectHub)ProjectHub.open();return;}
  if(section==='route'){menuContent.innerHTML='<h2>Route</h2>'+route.map((b,i)=>'<button class="shop-row '+(i===currentIndex?'selected':'')+'" data-i="'+i+'"><span>'+(i+1)+'</span><div><strong>'+b.name+'</strong><small>'+b.area+' · '+b.score+'/10</small></div></button>').join('')+(removed.size?'<div class="note-row"><strong>Removed shops</strong><p>'+removed.size+' hidden on this device.</p></div>':'');menuContent.querySelectorAll('.shop-row').forEach(r=>r.onclick=()=>{currentIndex=Number(r.dataset.i);shutMenu();render();});}
  if(section==='money'){menuContent.innerHTML='<h2>Money tracker</h2><button id="resetMoneyBtn" class="reset-money-btn">Reset money tracker</button><div class="money-card"><strong>£'+balance()+'</strong><span>Total completed value</span></div>'+Object.entries(completed).map(([id,n])=>{let b=businesses.find(x=>x.id===id);return '<div class="note-row"><strong>'+((b&&b.name)||id)+'</strong><p>Completed for £'+n+'</p></div>';}).join('');document.querySelector('#resetMoneyBtn').onclick=()=>showConfirm('Reset all completed money?',()=>{completed={};localStorage.setItem(completedKey,'{}');cloudPush();renderMenu('money');});}
  if(section==='sync'){menuContent.innerHTML='<h2>Team</h2><div class="help-card"><p id="syncStatus">'+((window.YorkSync&&YorkSync.status())||'Loading sync...')+'</p></div><h2>Team members</h2><div id="teamMembersBox">'+teamListHtml()+'</div><div class="detail-actions"><button id="signInBtn">Sign in with Google</button><button id="makeTeamBtn">Create team code</button></div><div class="detail-row"><strong>Join a team</strong><p><input id="teamCodeInput" class="money-input" placeholder="CODE"><button id="joinTeamBtn">Join</button></p></div>';document.querySelector('#signInBtn').onclick=async()=>{try{await YorkSync.signIn();renderMenu('sync')}catch(e){alert(e.message)}};document.querySelector('#makeTeamBtn').onclick=async()=>{try{let c=await YorkSync.createTeam();alert('Team code: '+c);renderMenu('sync')}catch(e){alert(e.message)}};document.querySelector('#joinTeamBtn').onclick=async()=>{try{let c=await YorkSync.joinTeam(document.querySelector('#teamCodeInput').value);alert('Joined team: '+c);renderMenu('sync')}catch(e){alert(e.message)}};}
