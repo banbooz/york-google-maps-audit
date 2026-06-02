@@ -12,7 +12,7 @@ const locateBtn=document.querySelector('#locateBtn');
 
 const notesKey='york-notes-v4',skippedKey='york-skipped-v2',removedKey='york-removed-v1',pricesKey='york-prices-v1',completedKey='york-completed-v1',routeModeKey='york-route-mode-v1',contactsKey='york-contacts-v1';
 let notes={},prices={},completed={},contacts={},skipped=new Set(),removed=new Set();
-let routeMode='best',currentIndex=0,sx=0,sy=0,menuSx=0,menuSy=0,lastMapUrl='',activeMenu='route',swipeLocked=false,route=[],teamMembers=[];
+let routeMode='best',currentIndex=0,sx=0,sy=0,menuSx=0,menuSy=0,lastMapUrl='',activeMenu='route',swipeLocked=false,route=[],teamMembers=[],sheetGesture=false;
 const aquiloNumber='7886180242';
 const areaOrder=['Shambles','Shambles Market','Stonegate','Goodramgate','Fossgate','Coppergate','Castlegate','Piccadilly','Micklegate','Museum Street','Walmgate Bar'];
 function readLocal(){notes=JSON.parse(localStorage.getItem(notesKey)||'{}');prices=JSON.parse(localStorage.getItem(pricesKey)||'{}');completed=JSON.parse(localStorage.getItem(completedKey)||'{}');contacts=JSON.parse(localStorage.getItem(contactsKey)||'{}');skipped=new Set(JSON.parse(localStorage.getItem(skippedKey)||'[]'));removed=new Set(JSON.parse(localStorage.getItem(removedKey)||'[]'));routeMode=localStorage.getItem(routeModeKey)||'best';}
@@ -20,8 +20,8 @@ function cloudPush(){if(window.YorkSync&&YorkSync.push)YorkSync.push().catch(()=
 function areaRank(b){let a=areaOrder.findIndex(x=>b.area.includes(x));return a<0?99:a;}
 function recommendedPrice(b){let base=b.score<=4?100:b.score<=5?85:b.score<=6?75:50;if(['Jewellery','Retail','Tourist shop'].includes(b.category))base+=10;if(b.priority==='High')base+=15;if(b.priority==='Low')base-=15;return Math.max(40,base);}
 function price(b){return Number(prices[b.id]||recommendedPrice(b));}
-function rebuildRoute(){let current=stop()?.id;route=businesses.filter(b=>!removed.has(b.id)).sort((a,b)=>routeMode==='walk'?(areaRank(a)-areaRank(b)||a.score-b.score):(a.score-b.score||areaRank(a)-areaRank(b)));let found=route.findIndex(b=>b.id===current);if(found>-1)currentIndex=found;if(currentIndex>=route.length)currentIndex=0;}
 function stop(){return route[currentIndex]||route[0];}
+function rebuildRoute(){let current=stop()?.id;route=businesses.filter(b=>!removed.has(b.id)).sort((a,b)=>routeMode==='walk'?(areaRank(a)-areaRank(b)||a.score-b.score):(a.score-b.score||areaRank(a)-areaRank(b)));let found=route.findIndex(b=>b.id===current);if(found>-1)currentIndex=found;if(currentIndex>=route.length)currentIndex=0;}
 function cleanQuery(b){return b.name+', York, UK';}
 function listing(b){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(cleanQuery(b));}
 function dir(b){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(cleanQuery(b));}
@@ -69,8 +69,9 @@ function renderMenu(section){
 window.applyCloudUpdate=function(){let before=stop()?.id;readLocal();rebuildRoute();let after=stop()?.id;render(before!==after);if(activeMenu==='sync'&&sideMenu.classList.contains('open'))renderMenu('sync');};
 window.updateTeamMembers=function(m){teamMembers=m||[];if(activeMenu==='sync'&&sideMenu.classList.contains('open')){let box=document.querySelector('#teamMembersBox');if(box)box.innerHTML=teamListHtml();let st=document.querySelector('#syncStatus');if(st&&window.YorkSync)st.textContent=YorkSync.status();}};
 readLocal();rebuildRoute();
-bottomSheet.ontouchstart=e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;};
-bottomSheet.ontouchend=e=>{if(swipeLocked)return;let dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(dx<-90&&Math.abs(dx)>Math.abs(dy)*1.4){skip();return;}if(dx>90&&Math.abs(dx)>Math.abs(dy)*1.4){previous();return;}if(dy<-55)bottomSheet.classList.add('expanded');if(dy>55)bottomSheet.classList.remove('expanded');};
-bottomSheet.onclick=e=>{if(e.target.className==='sheet-handle'||e.target.className==='swipe-hint')bottomSheet.classList.toggle('expanded');};
+function isSheetGestureTarget(t){return !!(t.closest&&t.closest('.sheet-handle,.swipe-hint,#nextStopCard'));}
+bottomSheet.ontouchstart=e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;sheetGesture=isSheetGestureTarget(e.target);};
+bottomSheet.ontouchend=e=>{if(!sheetGesture||swipeLocked)return;let dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(dx<-90&&Math.abs(dx)>Math.abs(dy)*1.4){skip();return;}if(dx>90&&Math.abs(dx)>Math.abs(dy)*1.4){previous();return;}if(Math.abs(dy)>55&&Math.abs(dy)>Math.abs(dx)*1.2){if(dy<0)bottomSheet.classList.add('expanded');else bottomSheet.classList.remove('expanded');}};
+bottomSheet.onclick=e=>{if(e.target.closest&&e.target.closest('.sheet-handle,.swipe-hint'))bottomSheet.classList.toggle('expanded');};
 sideMenu.ontouchstart=e=>{menuSx=e.touches[0].clientX;menuSy=e.touches[0].clientY;};sideMenu.ontouchend=e=>{let dx=e.changedTouches[0].clientX-menuSx,dy=e.changedTouches[0].clientY-menuSy;if(dx<-70&&Math.abs(dx)>Math.abs(dy))shutMenu();};
 menuBtn.onclick=openMenu;closeMenu.onclick=shutMenu;menuBackdrop.onclick=shutMenu;locateBtn.onclick=recenterMap;document.querySelectorAll('.menu-item').forEach(b=>b.onclick=()=>renderMenu(b.dataset.section));render();
