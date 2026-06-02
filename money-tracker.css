@@ -1,0 +1,30 @@
+.money-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.money-actions button {
+  border: 0;
+  border-radius: 16px;
+  padding: 13px 10px;
+  font-weight: 950;
+  background: #111;
+  color: #fff;
+}
+
+.money-actions .danger-money-btn {
+  background: #ffe8e5;
+  color: #b00000;
+}
+
+.saved-money-row strong {
+  font-size: 22px !important;
+}
+
+@media (max-width: 430px) {
+  .money-actions {
+    grid-template-columns: 1fr;
+  }
+}
