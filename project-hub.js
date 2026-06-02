@@ -45,7 +45,8 @@
 
   function card(p) {
     const price = prices()[p.id];
-    return `<div class="project-card" data-id="${p.id}" role="button" tabindex="0"><div class="project-top"><div><strong>${p.name}</strong><small>${p.area || 'York'} · ${p.completed ? 'Completed' : p.status || 'Started'}${price ? ' · £' + price : ''}</small></div><span>${p.completed ? 'Done' : 'Active'}</span></div><div class="project-actions"><button class="project-open" data-id="${p.id}">Open</button><button class="project-complete" data-id="${p.id}">${p.completed ? 'Uncomplete' : 'Complete'}</button></div><div id="project-detail-${p.id}" class="project-detail"></div></div>`;
+    const done = Object.values(p.progress || {}).filter(Boolean).length;
+    return `<div class="project-card ${p.completed ? 'is-complete' : ''}" data-id="${p.id}" role="button" tabindex="0"><div class="project-top"><div><strong>${p.name}</strong><small>${p.area || 'York'} · ${p.category || 'Local business'}${price ? ' · £' + price : ''}</small></div><span>${p.completed ? 'Done' : 'Active'}</span></div><div class="project-meta"><b>${done}/5 steps</b><b>${p.website ? 'Website saved' : 'Website needed'}</b></div><div class="project-actions"><button class="project-open" data-id="${p.id}">Open project</button><button class="project-complete" data-id="${p.id}">${p.completed ? 'Uncomplete' : 'Complete'}</button></div><div id="project-detail-${p.id}" class="project-detail"></div></div>`;
   }
 
   function contactEditor(p) {
@@ -56,7 +57,7 @@
   function detail(p) {
     const n = notes()[p.id] || 'No notes saved yet.';
     const web = safeUrl(p.website);
-    return `<button class="project-close-detail" data-id="${p.id}">Close project</button><div class="project-progress-box"><strong>Progress</strong>${tick(p,'photos','Photos made')}${tick(p,'website','Website made')}${tick(p,'maps','Google Maps updated')}${tick(p,'reviewqr','Review QR made')}${tick(p,'sent','Sent to client')}</div>${contactEditor(p)}<div class="note-row"><strong>Website</strong><p>${web ? `<a href="${web}" target="_blank" rel="noreferrer">${web}</a>` : 'No website link saved yet.'}</p></div><div class="note-row"><strong>Notes</strong><p>${String(n).replace(/\n/g, '<br>')}</p></div><div class="detail-actions"><a href="${mapsLink(p)}" target="_blank" rel="noreferrer">Google listing</a><button class="project-website" data-id="${p.id}">Add website</button><button class="project-reset" data-id="${p.id}">Reset</button><button class="project-delete danger-btn" data-id="${p.id}">Delete</button></div>`;
+    return `<button class="project-close-detail" data-id="${p.id}">Close project</button><div class="project-progress-box"><strong>Progress checklist</strong>${tick(p,'photos','Photos made')}${tick(p,'website','Website made')}${tick(p,'maps','Google Maps updated')}${tick(p,'reviewqr','Review QR made')}${tick(p,'sent','Sent to client')}</div>${contactEditor(p)}<div class="note-row"><strong>Website</strong><p>${web ? `<a href="${web}" target="_blank" rel="noreferrer">${web}</a>` : 'No website link saved yet.'}</p></div><div class="note-row"><strong>Notes</strong><p>${String(n).replace(/\n/g, '<br>')}</p></div><div class="detail-actions"><a href="${mapsLink(p)}" target="_blank" rel="noreferrer">Google listing</a><button class="project-website" data-id="${p.id}">${web ? 'Edit website' : 'Add website'}</button><button class="project-reset" data-id="${p.id}">Reset progress</button><button class="project-delete danger-btn" data-id="${p.id}">Delete project</button></div>`;
   }
 
   function ensurePage() {
@@ -67,21 +68,31 @@
     page.className = 'project-page';
     page.innerHTML = '<div class="project-page-head"><button id="projectBackBtn">‹</button><div><strong>Projects</strong><span>Client work</span></div><em id="projectCounter">0</em></div><div id="projectPageContent" class="project-page-content"></div>';
     document.body.appendChild(page);
-    document.querySelector('#projectBackBtn').onclick = () => page.classList.remove('open');
+    document.querySelector('#projectBackBtn').onclick = closeHub;
     return page;
   }
 
-  function openHub() {
+  function closeHub(fromHistory = false) {
+    const page = document.querySelector('#projectHubPage');
+    if (!page?.classList.contains('open')) return;
+    page.classList.remove('open');
+    if (!fromHistory && history.state?.projectHub) history.back();
+  }
+
+  function openHub(expandId) {
     hydrateProjects();
     const page = ensurePage();
+    const wasOpen = page.classList.contains('open');
     const content = page.querySelector('#projectPageContent');
     const list = Object.values(projects()).sort((a,b)=>(b.updated||0)-(a.updated||0));
     page.querySelector('#projectCounter').textContent = activeCount(list);
-    content.innerHTML = `<div class="project-toolbar"><button id="uncompleteAllBtn">Uncomplete all</button></div>${list.length ? list.map(card).join('') : '<p class="empty-text">No projects yet. Tap Start project on a shop.</p>'}`;
+    content.innerHTML = `<div class="project-intro"><strong>${activeCount(list)} active project${activeCount(list) === 1 ? '' : 's'}</strong><span>Tap a project card to open its details.</span></div>${list.length ? `<div class="project-toolbar"><button id="uncompleteAllBtn">Uncomplete all projects</button></div>${list.map(card).join('')}` : '<p class="empty-text">No projects yet. Tap Start project on a shop.</p>'}`;
     page.classList.add('open');
+    if (!wasOpen) history.pushState({ projectHub: true }, '', location.href);
     document.querySelector('#sideMenu')?.classList.remove('open');
     document.querySelector('#menuBackdrop')?.classList.remove('open');
     wire(content);
+    if (expandId) toggleProject(expandId);
   }
 
   function toggleProject(id) {
@@ -108,20 +119,6 @@
     root.querySelectorAll('.project-delete').forEach(btn => btn.onclick = e => { e.stopPropagation(); if(!confirm('Delete this project?')) return; const p = all(); delete p[btn.dataset.id]; save(p); openHub(); });
   }
 
-  function addMenuButton() {
-    const notesBtn = document.querySelector('[data-section="notes"]');
-    const menu = notesBtn?.parentElement;
-    if (!menu || document.querySelector('#projectHubBtn')) return;
-    const btn = document.createElement('button');
-    btn.id = 'projectHubBtn';
-    btn.className = 'menu-item';
-    btn.textContent = 'Projects';
-    btn.onclick = openHub;
-    menu.insertBefore(btn, notesBtn);
-  }
-
-  document.addEventListener('click', e => { if (['startProjectBtn','saveContactBtn','saveNoteBtn','savePriceBtn'].includes(e.target?.id)) setTimeout(() => createProjectFromShop(currentName()), 300); }, true);
   window.ProjectHub = { open: openHub, render: openHub, create: createProjectFromShop };
-  window.addEventListener('load', () => setTimeout(addMenuButton, 400));
-  new MutationObserver(addMenuButton).observe(document.body, { childList:true, subtree:true });
+  window.addEventListener('popstate', () => closeHub(true));
 })();
