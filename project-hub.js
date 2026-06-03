@@ -72,7 +72,7 @@
   function detail(p) {
     const n = notes()[p.id] || 'No notes saved yet.';
     const web = safeUrl(p.website);
-    return `<button class="project-route-shop" data-id="${p.id}">View shop on route</button><div class="project-progress-box"><strong>Progress checklist</strong>${tick(p, 'photos', 'Photos made')}${tick(p, 'website', 'Website made')}${tick(p, 'maps', 'Google Maps updated')}${tick(p, 'reviewqr', 'Review QR made')}${tick(p, 'sent', 'Sent to client')}</div>${contactEditor(p)}<div class="note-row"><strong>Website</strong><p>${web ? `<a href="${web}" target="_blank" rel="noreferrer">${web}</a>` : 'No website link saved yet.'}</p></div><div class="note-row"><strong>Notes</strong><p>${String(n).replace(/\n/g, '<br>')}</p></div><div class="detail-actions"><a href="${mapsLink(p)}" target="_blank" rel="noreferrer">Google listing</a><button class="project-website" data-id="${p.id}">${web ? 'Edit website' : 'Add website'}</button><button class="project-reset" data-id="${p.id}">Reset progress</button><button class="project-delete danger-btn" data-id="${p.id}">Delete project</button></div>`;
+    return `<div class="project-progress-box"><strong>Progress checklist</strong>${tick(p, 'photos', 'Photos made')}${tick(p, 'website', 'Website made')}${tick(p, 'maps', 'Google Maps updated')}${tick(p, 'reviewqr', 'Review QR made')}${tick(p, 'sent', 'Sent to client')}</div>${contactEditor(p)}<div class="note-row"><strong>Website</strong><p>${web ? `<a href="${web}" target="_blank" rel="noreferrer">${web}</a>` : 'No website link saved yet.'}</p></div><div class="note-row"><strong>Notes</strong><p>${String(n).replace(/\n/g, '<br>')}</p></div><div class="detail-actions"><a href="${mapsLink(p)}" target="_blank" rel="noreferrer">Google listing</a><button class="project-website" data-id="${p.id}">${web ? 'Edit website' : 'Add website'}</button><button class="project-reset" data-id="${p.id}">Reset progress</button><button class="project-delete danger-btn" data-id="${p.id}">Delete project</button></div>`;
   }
 
   function ensurePage() {
@@ -127,24 +127,12 @@
     wire(box);
   }
 
-  function showOnRoute(id) {
-    if (window.showShopOnRoute) { window.showShopOnRoute(id); return; }
-    const p = projects()[id];
-    document.querySelector('#projectHubPage')?.classList.remove('open', 'exit-left');
-    document.querySelector('#menuBtn')?.click();
-    setTimeout(() => {
-      const row = [...document.querySelectorAll('.shop-row')].find(item => item.querySelector('strong')?.textContent?.trim() === p?.name);
-      if (row) row.click();
-    }, 80);
-  }
-
   function wire(root) {
     const all = () => projects();
     const save = saveProjects;
     root.querySelector('#uncompleteAllBtn')?.addEventListener('click', () => { const p = all(); Object.values(p).forEach(x => { x.completed = false; }); save(p); openHub(); });
     root.querySelectorAll('.project-card').forEach(cardEl => { cardEl.onclick = e => { if (e.target.closest('button,a,input,label,summary,details')) return; toggleProject(cardEl.dataset.id); }; });
     root.querySelectorAll('.project-open').forEach(btn => { btn.onclick = e => { e.stopPropagation(); toggleProject(btn.dataset.id); }; });
-    root.querySelectorAll('.project-route-shop').forEach(btn => { btn.onclick = e => { e.stopPropagation(); showOnRoute(btn.dataset.id); }; });
     root.querySelectorAll('.project-complete').forEach(btn => { btn.onclick = e => { e.stopPropagation(); const p = all(); p[btn.dataset.id].completed = !p[btn.dataset.id].completed; p[btn.dataset.id].status = p[btn.dataset.id].completed ? 'Completed' : 'Started'; p[btn.dataset.id].updated = Date.now(); save(p); openHub(); }; });
     root.querySelectorAll('.project-progress').forEach(input => { input.onchange = () => { const p = all(); p[input.dataset.id].progress = p[input.dataset.id].progress || {}; p[input.dataset.id].progress[input.dataset.key] = input.checked; p[input.dataset.id].updated = Date.now(); save(p); }; });
     root.querySelectorAll('.project-save-contact').forEach(btn => { btn.onclick = e => { e.stopPropagation(); const cs = contacts(); cs[btn.dataset.id] = cs[btn.dataset.id] || {}; root.querySelectorAll('.project-contact-input[data-id="' + btn.dataset.id + '"]').forEach(input => { cs[btn.dataset.id][input.dataset.field] = input.value.trim(); }); saveContacts(cs); btn.textContent = 'Saved'; }; });
