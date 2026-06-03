@@ -8,5 +8,6 @@
 .project-card.is-complete .project-meta b{background:#e9fbb4}
 .project-actions .project-open{background:#1f7aff!important;color:#fff!important;box-shadow:0 8px 18px rgba(31,122,255,.2)}
 .project-actions .project-open:hover{background:#0b63df!important}
+.project-route-shop{width:100%;background:#1f7aff!important;color:#fff!important;border:0!important;border-radius:16px!important;padding:13px 14px!important;font-weight:950!important;box-shadow:0 8px 18px rgba(31,122,255,.2)}
 .project-page.exit-left,.clean-page.exit-left{transform:translateX(-100%)}
 .project-page:not(.open),.clean-page:not(.open){transition:none}
