@@ -1,4 +1,8 @@
 (() => {
+  function shopById(id) {
+    return (window.businesses || []).find(b => b.id === id);
+  }
+
   function listingName(b) {
     return b?.googleName || b?.name || '';
   }
@@ -15,6 +19,18 @@
     } catch {}
   }
 
+  function fixProjectDetails() {
+    document.querySelectorAll('.project-contact-input[data-field="phone"]').forEach(input => {
+      const b = shopById(input.dataset.id);
+      if (b?.phone && !input.value) input.value = b.phone;
+    });
+    document.querySelectorAll('.project-listing-btn').forEach(link => {
+      const card = link.closest('.project-card');
+      const b = shopById(card?.dataset.id);
+      if (b) link.href = listingUrl(b);
+    });
+  }
+
   try {
     listing = listingUrl;
     cleanQuery = listingName;
@@ -26,11 +42,14 @@
       render = function(...args) {
         const result = originalRender.apply(this, args);
         fillVisiblePhone();
+        fixProjectDetails();
         return result;
       };
     }
   } catch {}
 
   fillVisiblePhone();
-  window.addEventListener('load', fillVisiblePhone);
+  fixProjectDetails();
+  window.addEventListener('load', () => { fillVisiblePhone(); fixProjectDetails(); });
+  new MutationObserver(fixProjectDetails).observe(document.body, { childList: true, subtree: true });
 })();
