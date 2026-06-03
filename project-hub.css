@@ -6,5 +6,7 @@
 .project-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
 .project-meta b{background:#f1f1f1;border-radius:999px;padding:7px 9px;font-size:11px}
 .project-card.is-complete .project-meta b{background:#e9fbb4}
+.project-actions .project-open{background:#1f7aff!important;color:#fff!important;box-shadow:0 8px 18px rgba(31,122,255,.2)}
+.project-actions .project-open:hover{background:#0b63df!important}
 .project-page.exit-left,.clean-page.exit-left{transform:translateX(-100%)}
 .project-page:not(.open),.clean-page:not(.open){transition:none}
