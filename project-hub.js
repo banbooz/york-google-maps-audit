@@ -24,9 +24,10 @@
   function safeUrl(url) { if (!url) return ''; return /^https?:\/\//i.test(url) ? url : 'https://' + url; }
   function saveProjects(all) { write(PROJECT_KEY, all); sync(); }
   function saveContacts(all) { write(CONTACTS_KEY, all); sync(); }
+  function saveStatuses(all) { write(STATUS_KEY, all); sync(); }
   function isProjectUrl() { return new URL(location.href).searchParams.get('page') === PAGE_NAME; }
   function projectUrl() { const url = new URL(location.href); url.searchParams.set('page', PAGE_NAME); return url.toString(); }
-  function statusFor(p) { return statuses()[p.id] || 'not-visited'; }
+  function statusFor(p) { return statuses()[p.id] === 'comeback' ? 'comeback' : projects()[p.id] ? 'visited' : 'not-visited'; }
   function statusLabel(s) { return s === 'visited' ? 'Visited' : s === 'comeback' ? 'Come back later' : 'Not visited'; }
   function statusTag(p) { const s = statusFor(p); return `<span class="shop-status-tag shop-status-${s}">${statusLabel(s)}</span>`; }
 
@@ -37,6 +38,9 @@
     const all = projects();
     const old = all[id] || {};
     all[id] = { id, name: b?.name || name, area: b?.area || old.area || '', category: b?.category || old.category || '', website: old.website || '', status: old.status || 'Started', progress: old.progress || {}, completed: old.completed || false, created: old.created || Date.now(), updated: Date.now() };
+    const s = statuses();
+    s[id] = 'visited';
+    saveStatuses(s);
     saveProjects(all);
     return all[id];
   }
@@ -135,7 +139,7 @@
     root.querySelectorAll('.project-save-contact').forEach(btn => { btn.onclick = e => { e.stopPropagation(); const cs = contacts(); cs[btn.dataset.id] = cs[btn.dataset.id] || {}; root.querySelectorAll('.project-contact-input[data-id="' + btn.dataset.id + '"]').forEach(input => { cs[btn.dataset.id][input.dataset.field] = input.value.trim(); }); saveContacts(cs); btn.textContent = 'Saved'; }; });
     root.querySelectorAll('.project-website').forEach(btn => { btn.onclick = e => { e.stopPropagation(); const p = all(); const item = p[btn.dataset.id]; const link = prompt('Paste the website link for ' + item.name, item.website || ''); if (link === null) return; item.website = link.trim(); item.progress = item.progress || {}; if (item.website) item.progress.website = true; item.updated = Date.now(); save(p); openHub(); }; });
     root.querySelectorAll('.project-reset').forEach(btn => { btn.onclick = e => { e.stopPropagation(); const p = all(); p[btn.dataset.id].completed = false; p[btn.dataset.id].status = 'Started'; p[btn.dataset.id].progress = {}; p[btn.dataset.id].updated = Date.now(); save(p); openHub(); }; });
-    root.querySelectorAll('.project-delete').forEach(btn => { btn.onclick = e => { e.stopPropagation(); if (!confirm('Delete this project?')) return; const p = all(); delete p[btn.dataset.id]; save(p); openHub(); }; });
+    root.querySelectorAll('.project-delete').forEach(btn => { btn.onclick = e => { e.stopPropagation(); if (!confirm('Delete this project?')) return; const p = all(); const s = statuses(); delete p[btn.dataset.id]; delete s[btn.dataset.id]; saveStatuses(s); save(p); openHub(); }; });
   }
 
   window.ProjectHub = { open: openHub, render: openHub, create: createProjectFromShop };
