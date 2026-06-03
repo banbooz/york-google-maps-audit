@@ -44,6 +44,18 @@
     });
   }
 
+  async function renameNote(shop, index, name) {
+    const db = await openDb();
+    const existing = await getNotes(shop);
+    if (!existing[index]) return;
+    existing[index].name = name;
+    return new Promise(resolve => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(existing, shop);
+      tx.oncomplete = resolve;
+    });
+  }
+
   async function deleteNote(shop, index) {
     const db = await openDb();
     const existing = await getNotes(shop);
@@ -58,6 +70,10 @@
 
   function currentShopName() {
     return document.querySelector('#nextStopCard h1')?.textContent?.trim() || '';
+  }
+
+  function esc(text) {
+    return String(text || '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   }
 
   function sectionHtml() {
@@ -87,8 +103,20 @@
     playback.innerHTML = notes.map((note, index) => {
       const url = URL.createObjectURL(note.blob);
       const date = new Date(note.created || Date.now()).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' });
-      return `<div class="voice-playback-item"><div><strong>Voice note ${notes.length - index}</strong><small>${date}</small></div><audio controls src="${url}"></audio><button class="deleteVoiceBtn" data-index="${index}" type="button" aria-label="Delete voice note">&times;</button></div>`;
+      const title = note.name || `Voice note ${index + 1}`;
+      return `<div class="voice-playback-item"><div><button class="voice-title" data-index="${index}" type="button">${esc(title)}</button><small>${esc(date)}</small></div><audio controls src="${url}"></audio><button class="deleteVoiceBtn" data-index="${index}" type="button" aria-label="Delete voice note">&times;</button></div>`;
     }).join('');
+    playback.querySelectorAll('.voice-title').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const notesNow = await getNotes(shop);
+        const current = notesNow[Number(btn.dataset.index)]?.name || btn.textContent.trim();
+        const name = prompt('Name this voice note', current);
+        if (name === null) return;
+        await renameNote(shop, Number(btn.dataset.index), name.trim() || current);
+        refreshPlayback();
+      };
+    });
     playback.querySelectorAll('.deleteVoiceBtn').forEach(btn => {
       btn.onclick = async e => {
         e.stopPropagation();
@@ -111,22 +139,73 @@
       stream.getTracks().forEach(track => track.stop());
       await saveNote(activeShop, blob);
       recorder = null;
-      const btn = document.querySelector('#voiceRecordBtn');
-      if (btn) btn.textContent = 'Record voice note';
+      updateRecordButtons(false);
       await refreshPlayback();
     };
     recorder.start();
     document.querySelector('#voiceNoteBox')?.setAttribute('open', '');
-    document.querySelector('#voiceRecordBtn').textContent = 'Stop and save';
-    document.querySelector('#voiceStatus').textContent = 'Recording...';
+    updateRecordButtons(true);
+    const status = document.querySelector('#voiceStatus');
+    if (status) status.textContent = 'Recording...';
   }
 
   function stopRecording() {
     if (recorder && recorder.state === 'recording') recorder.stop();
   }
 
+  async function toggleRecording() {
+    try {
+      if (recorder && recorder.state === 'recording') stopRecording();
+      else await startRecording();
+    } catch (err) {
+      const status = document.querySelector('#voiceStatus');
+      if (status) status.textContent = 'Microphone blocked or not available';
+      updateRecordButtons(false);
+    }
+  }
+
+  function updateRecordButtons(recording) {
+    document.querySelectorAll('#voiceRecordBtn,#topVoiceRecordBtn').forEach(btn => {
+      if (!btn) return;
+      btn.classList.toggle('is-recording', recording);
+      if (btn.id === 'voiceRecordBtn') btn.textContent = recording ? 'Stop and save' : 'Record voice note';
+      if (btn.id === 'topVoiceRecordBtn') btn.setAttribute('aria-label', recording ? 'Stop recording voice note' : 'Record voice note');
+    });
+  }
+
+  function wireTopButton() {
+    const priceBtn = document.querySelector('#setPriceBtn');
+    if (priceBtn && !document.querySelector('#topVoiceRecordBtn')) {
+      let stack = priceBtn.closest('.top-action-stack');
+      if (!stack) {
+        stack = document.createElement('div');
+        stack.className = 'top-action-stack';
+        priceBtn.parentNode.insertBefore(stack, priceBtn);
+        stack.appendChild(priceBtn);
+      }
+      const mic = document.createElement('button');
+      mic.className = 'quick-voice-btn';
+      mic.id = 'topVoiceRecordBtn';
+      mic.type = 'button';
+      mic.setAttribute('aria-label', 'Record voice note');
+      mic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14c1.7 0 3-1.3 3-3V6c0-1.7-1.3-3-3-3S9 4.3 9 6v5c0 1.7 1.3 3 3 3zm5-3c0 2.8-2.2 5-5 5s-5-2.2-5-5H5c0 3.5 2.6 6.4 6 6.9V21h4v-3.1c3.4-.5 6-3.4 6-6.9h-2z"/></svg>';
+      stack.appendChild(mic);
+    }
+    const btn = document.querySelector('#topVoiceRecordBtn');
+    if (!btn || btn.dataset.voiceReady === '1') return;
+    btn.dataset.voiceReady = '1';
+    btn.onclick = e => {
+      e.stopPropagation();
+      ensureVoiceSection();
+      document.querySelector('#voiceNoteBox')?.setAttribute('open', '');
+      toggleRecording();
+    };
+    updateRecordButtons(recorder?.state === 'recording');
+  }
+
   function ensureVoiceSection() {
     const detail = document.querySelector('#detailPanel');
+    wireTopButton();
     if (!detail || !document.querySelector('#noteBox')) return;
     const shop = currentShopName();
     if (!shop) return;
@@ -137,13 +216,9 @@
     document.querySelector('#voiceNoteBox').dataset.shop = shop;
     document.querySelector('#voiceRecordBtn').onclick = async e => {
       e.stopPropagation();
-      try {
-        if (recorder && recorder.state === 'recording') stopRecording();
-        else await startRecording();
-      } catch (err) {
-        document.querySelector('#voiceStatus').textContent = 'Microphone blocked or not available';
-      }
+      toggleRecording();
     };
+    updateRecordButtons(recorder?.state === 'recording');
     refreshPlayback();
   }
 
