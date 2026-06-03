@@ -127,13 +127,24 @@
     wire(box);
   }
 
+  function showOnRoute(id) {
+    if (window.showShopOnRoute) { window.showShopOnRoute(id); return; }
+    const p = projects()[id];
+    document.querySelector('#projectHubPage')?.classList.remove('open', 'exit-left');
+    document.querySelector('#menuBtn')?.click();
+    setTimeout(() => {
+      const row = [...document.querySelectorAll('.shop-row')].find(item => item.querySelector('strong')?.textContent?.trim() === p?.name);
+      if (row) row.click();
+    }, 80);
+  }
+
   function wire(root) {
     const all = () => projects();
     const save = saveProjects;
     root.querySelector('#uncompleteAllBtn')?.addEventListener('click', () => { const p = all(); Object.values(p).forEach(x => { x.completed = false; }); save(p); openHub(); });
     root.querySelectorAll('.project-card').forEach(cardEl => { cardEl.onclick = e => { if (e.target.closest('button,a,input,label,summary,details')) return; toggleProject(cardEl.dataset.id); }; });
     root.querySelectorAll('.project-open').forEach(btn => { btn.onclick = e => { e.stopPropagation(); toggleProject(btn.dataset.id); }; });
-    root.querySelectorAll('.project-route-shop').forEach(btn => { btn.onclick = e => { e.stopPropagation(); if (window.showShopOnRoute) window.showShopOnRoute(btn.dataset.id); }; });
+    root.querySelectorAll('.project-route-shop').forEach(btn => { btn.onclick = e => { e.stopPropagation(); showOnRoute(btn.dataset.id); }; });
     root.querySelectorAll('.project-complete').forEach(btn => { btn.onclick = e => { e.stopPropagation(); const p = all(); p[btn.dataset.id].completed = !p[btn.dataset.id].completed; p[btn.dataset.id].status = p[btn.dataset.id].completed ? 'Completed' : 'Started'; p[btn.dataset.id].updated = Date.now(); save(p); openHub(); }; });
     root.querySelectorAll('.project-progress').forEach(input => { input.onchange = () => { const p = all(); p[input.dataset.id].progress = p[input.dataset.id].progress || {}; p[input.dataset.id].progress[input.dataset.key] = input.checked; p[input.dataset.id].updated = Date.now(); save(p); }; });
     root.querySelectorAll('.project-save-contact').forEach(btn => { btn.onclick = e => { e.stopPropagation(); const cs = contacts(); cs[btn.dataset.id] = cs[btn.dataset.id] || {}; root.querySelectorAll('.project-contact-input[data-id="' + btn.dataset.id + '"]').forEach(input => { cs[btn.dataset.id][input.dataset.field] = input.value.trim(); }); saveContacts(cs); btn.textContent = 'Saved'; }; });
