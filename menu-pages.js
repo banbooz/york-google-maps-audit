@@ -17,8 +17,9 @@
 
   function statusFor(b) {
     const statuses = read(statusKey, {});
-    const skipped = new Set(read('york-skipped-v2', []));
-    return statuses[b.id] || (skipped.has(b.id) ? 'visited' : 'not-visited');
+    const projects = read('york-projects-v1', {});
+    if (statuses[b.id] === 'comeback') return 'comeback';
+    return projects[b.id] ? 'visited' : 'not-visited';
   }
 
   function statusLabel(status) {
@@ -44,6 +45,18 @@
     return p;
   }
 
+  function baseUrl() {
+    const url = new URL(location.href);
+    url.searchParams.delete('page');
+    return url.toString();
+  }
+
+  function pageUrl(name) {
+    const url = new URL(baseUrl());
+    url.searchParams.set('page', name);
+    return url.toString();
+  }
+
   function close(fromHistory = false) {
     const p = document.querySelector('#cleanPage');
     if (!p?.classList.contains('open')) return;
@@ -53,14 +66,17 @@
     setTimeout(() => p.classList.remove('open', 'exit-left'), 240);
   }
 
-  function open(title, sub, html) {
+  function open(title, sub, html, pageName = 'page') {
     const p = page();
     p.querySelector('#cleanPageTitle').textContent = title;
     p.querySelector('#cleanPageSub').innerHTML = sub;
     p.querySelector('#cleanPageContent').innerHTML = html;
     p.classList.remove('exit-left');
     p.classList.add('open');
-    if (!history.state?.cleanPage) history.pushState({ cleanPage: true }, '', location.href);
+    if (!history.state?.cleanPage) {
+      if (new URL(location.href).searchParams.get('page') === 'projects') history.replaceState({}, '', baseUrl());
+      history.pushState({ cleanPage: true, cleanPageName: pageName }, '', pageUrl(pageName));
+    }
     document.querySelector('#sideMenu')?.classList.remove('open');
     document.querySelector('#menuBackdrop')?.classList.remove('open');
   }
@@ -76,7 +92,7 @@
       <a class="clean-row shop-status-${statusFor(b)}" href="${mapsLink(b)}" target="_blank" rel="noreferrer">
         <span>${i + 1}</span>
         <div><strong>${b.name}</strong>${statusTag(b)}<small>${b.area} &middot; ${b.priority}</small></div>
-      </a>`).join(''));
+      </a>`).join(''), 'route');
   }
 
   function renderShops() {
@@ -85,7 +101,7 @@
       <a class="clean-row shop-status-${statusFor(b)}" href="${mapsLink(b)}" target="_blank" rel="noreferrer">
         <span>&nearr;</span>
         <div><strong>${b.name}</strong>${statusTag(b)}<small>${b.category} &middot; ${b.area}</small></div>
-      </a>`).join(''));
+      </a>`).join(''), 'shops');
   }
 
   function renderMoney() {
@@ -97,7 +113,7 @@
       return `<div class="clean-card"><strong>${b?.name || id}</strong>${b ? statusTag(b) : ''}<p>Completed for &pound;${amount}</p></div>`;
     }).join('');
     const savedRows = saved.map(item => `<div class="clean-card saved-money-row"><strong>&pound;${item.total || 0}</strong><p>${item.date || 'Saved total'} &middot; ${item.count || 0} completed job${item.count === 1 ? '' : 's'}</p></div>`).join('');
-    open('Money tracker', '&pound;' + total + ' total completed value', `<div class="mini-stat"><strong>&pound;${total}</strong><span>Total made</span></div><div class="money-actions"><button id="saveMoneyBtn">Save current total</button><button id="resetMoneyBtn" class="danger-money-btn">Reset to &pound;0</button></div><h2>Current history</h2>${rows || '<p class="empty-text">No completed jobs yet.</p>'}<h2>Saved history</h2>${savedRows || '<p class="empty-text">No saved money history yet.</p>'}`);
+    open('Money tracker', '&pound;' + total + ' total completed value', `<div class="mini-stat"><strong>&pound;${total}</strong><span>Total made</span></div><div class="money-actions"><button id="saveMoneyBtn">Save current total</button><button id="resetMoneyBtn" class="danger-money-btn">Reset to &pound;0</button></div><h2>Current history</h2>${rows || '<p class="empty-text">No completed jobs yet.</p>'}<h2>Saved history</h2>${savedRows || '<p class="empty-text">No saved money history yet.</p>'}`, 'money');
     document.querySelector('#saveMoneyBtn').onclick = () => {
       const current = read(completedKey, {});
       const currentTotal = Object.values(current).reduce((s, n) => s + Number(n || 0), 0);
@@ -123,7 +139,7 @@
       const c = contacts[id] || {};
       return `<div class="clean-card"><strong>${b?.name || id}</strong>${b ? statusTag(b) : ''}<p>${c.owner || ''} ${c.phone ? '&middot; ' + c.phone : ''}</p><p>${String(notes[id] || 'No note saved.').replace(/\n/g, '<br>')}</p></div>`;
     }).join('');
-    open('Saved notes', ids.size + ' shops with saved info', rows || '<p class="empty-text">No notes saved yet.</p>');
+    open('Saved notes', ids.size + ' shops with saved info', rows || '<p class="empty-text">No notes saved yet.</p>', 'notes');
   }
 
   function removeHowTo() {
@@ -137,6 +153,7 @@
     if (section === 'sync' || section === 'projects' || section === 'shop' || section === 'route') return;
     e.preventDefault();
     e.stopImmediatePropagation();
+    if (section === 'route') renderRoute();
     if (section === 'shops') renderShops();
     if (section === 'money') renderMoney();
     if (section === 'notes') renderNotes();
