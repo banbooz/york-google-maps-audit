@@ -19,6 +19,14 @@
     } catch {}
   }
 
+  function fixGoogleLinks() {
+    document.querySelectorAll('a[href*="google.com/maps/search"]').forEach(link => {
+      const text = link.textContent || '';
+      const b = (window.businesses || []).find(shop => text.includes(shop.name));
+      if (b) link.href = listingUrl(b);
+    });
+  }
+
   function fixProjectDetails() {
     document.querySelectorAll('.project-contact-input[data-field="phone"]').forEach(input => {
       const b = shopById(input.dataset.id);
@@ -29,6 +37,7 @@
       const b = shopById(card?.dataset.id);
       if (b) link.href = listingUrl(b);
     });
+    fixGoogleLinks();
   }
 
   try {
