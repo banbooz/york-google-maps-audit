@@ -203,3 +203,52 @@
 .team-actions {
   grid-template-columns: 1fr !important;
 }
+
+.top-action-stack {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.quick-voice-btn {
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: #00a83b;
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(0, 168, 59, .28);
+}
+
+.quick-voice-btn svg {
+  width: 23px;
+  height: 23px;
+  fill: currentColor;
+}
+
+.quick-voice-btn.is-recording {
+  background: #e11919;
+  box-shadow: 0 10px 24px rgba(225, 25, 25, .32);
+  animation: voicePulse 900ms ease-in-out infinite;
+}
+
+@keyframes voicePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.voice-title {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  border: 0;
+  border-radius: 999px;
+  background: #eef3ff;
+  color: #10205c;
+  padding: 7px 10px;
+  font-size: 14px;
+  font-weight: 950;
+  text-align: left;
+}
