@@ -9,7 +9,7 @@ const sideMenu = document.querySelector('#sideMenu');
 const menuBackdrop = document.querySelector('#menuBackdrop');
 const menuContent = document.querySelector('#menuContent');
 const locateBtn = document.querySelector('#locateBtn');
-const APP_VERSION = '37';
+const APP_VERSION = '38';
 
 const notesKey = 'york-notes-v4';
 const skippedKey = 'york-skipped-v2';
@@ -62,7 +62,8 @@ function map(b) { return 'https://maps.google.com/maps?f=q&source=s_q&hl=en&q=' 
 function balance() { return Object.values(completed).reduce((sum, n) => sum + Number(n || 0), 0); }
 
 function statusFor(b) {
-  return statuses[b.id] || (skipped.has(b.id) ? 'visited' : 'not-visited');
+  if (statuses[b.id] === 'comeback') return 'comeback';
+  return safeParse(projectsKey, {})[b.id] ? 'visited' : 'not-visited';
 }
 
 function statusLabel(status) {
@@ -81,7 +82,8 @@ function statusTag(b) {
 }
 
 function setShopStatus(id, status) {
-  statuses[id] = status;
+  if (status) statuses[id] = status;
+  else delete statuses[id];
   localStorage.setItem(statusKey, JSON.stringify(statuses));
   cloudPush();
 }
@@ -118,7 +120,7 @@ function contactFor(b) { return contacts[b.id] || {}; }
 function proofText() { return 'We would improve your Google Maps listing by making the first impression clearer: stronger photos, better wording, review QR system, and simple reply templates.'; }
 function setMenuVersion() {
   const sub = document.querySelector('.menu-head span');
-  if (sub) sub.textContent = 'York route · v: ' + APP_VERSION;
+  if (sub) sub.textContent = 'York route \u00b7 v: ' + APP_VERSION;
 }
 
 function render(updateMap = true) {
@@ -132,7 +134,7 @@ function render(updateMap = true) {
   }
 
   const c = contactFor(b);
-  progressText.textContent = 'Stop ' + (currentIndex + 1) + ' of ' + route.length + ' · \u00a3' + balance() + ' made';
+  progressText.textContent = 'Stop ' + (currentIndex + 1) + ' of ' + route.length + ' \u00b7 \u00a3' + balance() + ' made';
   nextStopCard.classList.toggle('shop-comeback-card', statusFor(b) === 'comeback');
   nextStopCard.classList.toggle('shop-visited-card', statusFor(b) === 'visited');
 
@@ -145,11 +147,11 @@ function render(updateMap = true) {
   nextStopCard.innerHTML =
     '<div class="stop-top"><div><span class="mini-label">Next stop</span><h1>' + b.name + '</h1><div class="status-line">' + statusTag(b) + '<span>' + b.area + '</span></div></div><button class="score-badge" id="setPriceBtn">' + priceLabel(b) + '</button></div>' +
     '<div class="stop-tags"><span>' + b.priority + ' target</span><span>' + b.category + '</span><span>best route</span></div>' +
-    '<div class="primary-actions"><a class="start-route route-pulse" href="' + dir(b) + '" target="_blank" rel="noreferrer">Start route</a><button id="startProjectBtn">Start project</button><button id="comebackBtn">Come back later</button></div>';
+    '<div class="primary-actions"><a class="start-route route-pulse" href="' + dir(b) + '" target="_blank" rel="noreferrer">Start route</a><button id="startProjectBtn">Start project</button><button id="comebackBtn">' + (statusFor(b) === 'comeback' ? 'Undo come back later' : 'Come back later') + '</button></div>';
 
   detailPanel.innerHTML =
-    '<details class="detail-row collapsible-row"><summary><strong>In-person script</strong><span>Tap to open</span></summary><p>' + scriptFor(b) + '</p></details>' +
-    '<details class="detail-row proof-card collapsible-row"><summary><strong>Proof/demo mode</strong><span>Tap to open</span></summary><h3>' + b.name + '</h3><p>' + proofText(b) + '</p><ul><li>Improve first 5 Google photos</li><li>Add clearer service/product wording</li><li>Create review QR code</li><li>Give review reply templates</li></ul></details>' +
+    '<details class="detail-row script-card collapsible-row"><summary><strong>In-person script</strong><span>Tap to open</span></summary><p>' + scriptFor(b) + '</p></details>' +
+    '<details class="detail-row proof-card demo-card collapsible-row"><summary><strong>Proof/demo mode</strong><span>Tap to open</span></summary><h3>' + b.name + '</h3><p>' + proofText(b) + '</p><ul><li>Improve first 5 Google photos</li><li>Add clearer service/product wording</li><li>Create review QR code</li><li>Give review reply templates</li></ul></details>' +
     '<div class="detail-row"><details class="home-contact-drop"><summary>Contact details</summary><div class="contact-grid"><input id="ownerInput" placeholder="Owner/manager name" value="' + (c.owner || '') + '"><input id="phoneInput" placeholder="Phone" value="' + (c.phone || '') + '"><input id="emailInput" placeholder="Email" value="' + (c.email || '') + '"><input id="instaInput" placeholder="Instagram" value="' + (c.instagram || '') + '"><input id="timeInput" placeholder="Best time to contact" value="' + (c.bestTime || '') + '"></div><button id="saveContactBtn" class="small-save-btn">Save contact</button></details></div>' +
     '<div class="detail-row"><strong>Price</strong><div class="inline-price"><span>\u00a3</span><input id="priceInput" class="money-input" type="number" inputmode="numeric" placeholder="Price" value="' + (price(b) || '') + '"></div></div>' +
     '<div class="detail-actions"><a href="' + listing(b) + '" target="_blank" rel="noreferrer">View listing</a><button id="removeBtn" class="danger-btn">Remove shop</button></div>' +
@@ -187,6 +189,7 @@ function startProject(b, openHub = false) {
   const old = projects[b.id] || {};
   projects[b.id] = { id: b.id, name: b.name, area: b.area, category: b.category, website: old.website || '', status: old.status || 'Started', progress: old.progress || {}, completed: old.completed || false, created: old.created || Date.now(), updated: Date.now() };
   localStorage.setItem(projectsKey, JSON.stringify(projects));
+  setShopStatus(b.id, 'visited');
   cloudPush();
   if (openHub && window.ProjectHub) ProjectHub.open(b.id);
 }
@@ -206,7 +209,6 @@ function skip() {
   lockSwipe();
   const current = stop();
   skipped.add(current.id);
-  setShopStatus(current.id, 'visited');
   localStorage.setItem(skippedKey, JSON.stringify([...skipped]));
   currentIndex = (currentIndex + 1) % route.length;
   bottomSheet.classList.remove('expanded');
@@ -215,7 +217,15 @@ function skip() {
 }
 
 function comebackLater(b) {
-  if (!b || swipeLocked) return;
+  if (!b) return;
+  if (statusFor(b) === 'comeback') {
+    setShopStatus(b.id, null);
+    bottomSheet.classList.remove('expanded');
+    flash();
+    render();
+    return;
+  }
+  if (swipeLocked) return;
   lockSwipe();
   setShopStatus(b.id, 'comeback');
   currentIndex = (currentIndex + 1) % route.length;
@@ -327,7 +337,7 @@ function teamListHtml() {
 
 function routeRow(b, i) {
   const selected = i === currentIndex ? ' selected' : '';
-  return '<button class="shop-row ' + statusClassFor(b) + selected + '" data-i="' + i + '"><span>' + (i + 1) + '</span><div><strong>' + b.name + '</strong><div class="row-status">' + statusTag(b) + '</div><small>' + b.area + ' · ' + b.score + '/10</small></div></button>';
+  return '<button class="shop-row ' + statusClassFor(b) + selected + '" data-i="' + i + '"><span>' + (i + 1) + '</span><div><strong>' + b.name + '</strong><div class="row-status">' + statusTag(b) + '</div><small>' + b.area + ' \u00b7 ' + b.score + '/10</small></div></button>';
 }
 
 function renderMenu(section) {
